@@ -1313,7 +1313,7 @@ local function log(fmt, ...)
 end
 
 local K = {
-	VERSION = "1.2.19",
+	VERSION = "1.2.20",
 	UPDATE_URLS = {
 		"https://raw.githubusercontent.com/gademoffshit/draft-helper/main/version.json",
 		"https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@main/version.json",
@@ -15680,14 +15680,25 @@ do
 		end
 		local col_w = (gx1 - gx0 - 3 * px(K.COL_GAP)) / 4
 		local cell_gap = px(K.CELL_GAP)
-		local cell_w = (col_w - cell_gap) / 2
-		local cell_h = px(K.CELL_H)
 		local head_h = px(18)
+		local per, cell_w, cell_h = 2, (col_w - cell_gap) / 2, px(K.CELL_H)
+		local best = 0
+		for n = 2, 4 do
+			local rows = 0
+			for _, group in pairs(D.by_attr) do
+				rows = math.max(rows, math.ceil(#group / n))
+			end
+			local cw = (col_w - (n - 1) * cell_gap) / n
+			local ch = math.min(math.floor(cw * 9 / 16), math.floor((gy1 - gy0 - head_h + cell_gap) / math.max(1, rows) - cell_gap))
+			if ch >= px(14) and ch * 3.6 >= cw and cw * ch > best then
+				best, per, cell_w, cell_h = cw * ch, n, cw, ch
+			end
+		end
 		local q = norm(draft.query)
 		local used = used_set()
 		local content = 0
 		for _, group in pairs(D.by_attr) do
-			content = math.max(content, head_h + math.ceil(#group / 2) * (cell_h + cell_gap))
+			content = math.max(content, head_h + math.ceil(#group / per) * (cell_h + cell_gap) - cell_gap)
 		end
 		local gmax = math.max(0, content - (gy1 - gy0))
 		local scroll = SB.scroll("grid", "grid_scroll", gmax)
@@ -15699,7 +15710,7 @@ do
 			local x0 = gx0 + (n - 1) * (col_w + px(K.COL_GAP))
 			text(W.fonts.semi, px(10), L("cd_attr_" .. attr), x0, oy + head_h / 2 - px(2), fade(P.MUTED, a))
 			for j, hero in ipairs(D.by_attr[attr]) do
-				local col, row = (j - 1) % 2, (j - 1) // 2
+				local col, row = (j - 1) % per, (j - 1) // per
 				local hx = math.floor(x0 + col * (cell_w + cell_gap) + 0.5)
 				local hy = math.floor(oy + head_h + row * (cell_h + cell_gap) + 0.5)
 				local hw = math.floor(cell_w + 0.5)
