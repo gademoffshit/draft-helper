@@ -485,8 +485,8 @@ local localization = qLocalization.new({
 		cd_cm_why = "Few CM games, about %d a day, hero pairs lean on ranked",
 		cd_cm_why0 = "Few CM games, hero pairs lean on ranked matches",
 		cd_lang = "en",
-		cd_upd_failed = "Update failed",
-		cd_pill_get = "Update to %s",
+		cd_upd_failed = "Update failed, trying again",
+		cd_pill_get = "Version %s installs after the match",
 		cd_pill_down = "Downloading %s",
 		cd_pill_done = "Updated, restarting",
 		cd_upd_loading = "loading",
@@ -677,16 +677,18 @@ local localization = qLocalization.new({
 		cd_tip_suggest_top = "Suggests the first two heroes of this list.\nThe game keeps two suggestions per player",
 		cd_sug_sent = "Suggested to the team: %s",
 		cd_sug_off = "Suggestion taken back: %s",
-		cd_set_autoupd = "Update automatically",
 		cd_tip_own_start = "You started it yourself: %d%% of the price is in your parts",
 		cd_skv_why = "Fits this game: vs %s pros max %s first more often (%d%%, usually %d%%)",
+		cd_set_ver = "Draft Helper %s, updates itself between matches",
+		cd_card_head_sub = "plan for this match",
+		cd_card_vs = "vs",
+		cd_sec_logs = "REPORTS",
 		cd_tal_why = "Fits this game: %s, pros take it more often (%d%%, usually %d%%)",
 		cd_why_lane = "%s in lane",
 		cd_why_lineup = "this lineup",
 		cd_why_ahead = "your team is ahead",
 		cd_why_behind = "your team is behind",
 		cd_tip_own_up = "Upgrade of your %s, pros take it in %d%% of games",
-		cd_tip_autoupd = "Version %s. A new version installs itself between matches\nfrom github.com/gademoffshit/draft-helper",
 		cd_ban_t = "Hide %s",
 		cd_tip_ban = "Left click: never suggest it for %s.\nRight click: for all heroes. Settings list the hidden items",
 		cd_ban_one = "Hidden: %s",
@@ -924,8 +926,8 @@ local localization = qLocalization.new({
 		cd_cm_why = "В CM мало игр, около %d в день, пары героев дополняются рейтинговыми",
 		cd_cm_why0 = "В CM мало игр, пары героев дополняются рейтинговыми",
 		cd_lang = "ru",
-		cd_upd_failed = "Не удалось обновить",
-		cd_pill_get = "Обновить до %s",
+		cd_upd_failed = "Не удалось обновить, повторю",
+		cd_pill_get = "Версия %s встанет после матча",
 		cd_pill_down = "Скачиваю %s",
 		cd_pill_done = "Обновлено, перезапуск",
 		cd_upd_loading = "загружается",
@@ -1116,16 +1118,18 @@ local localization = qLocalization.new({
 		cd_tip_suggest_top = "Предлагает первых двух героев списка.\nИгра держит два предложения от игрока",
 		cd_sug_sent = "Предложено команде: %s",
 		cd_sug_off = "Предложение снято: %s",
-		cd_set_autoupd = "Обновлять автоматически",
 		cd_tip_own_start = "Ты начал его сам: в частях уже %d%% цены",
 		cd_skv_why = "Под эту игру: против %s про чаще сначала максят %s (%d%%, обычно %d%%)",
+		cd_set_ver = "Draft Helper %s, обновляется сам между матчами",
+		cd_card_head_sub = "план на этот матч",
+		cd_card_vs = "против",
+		cd_sec_logs = "ОТЧЁТЫ",
 		cd_tal_why = "Под эту игру: %s, про чаще берут этот талант (%d%%, обычно %d%%)",
 		cd_why_lane = "%s на линии",
 		cd_why_lineup = "этого состава",
 		cd_why_ahead = "команда впереди",
 		cd_why_behind = "команда отстаёт",
 		cd_tip_own_up = "Улучшение твоего %s, у про в %d%% игр",
-		cd_tip_autoupd = "Версия %s. Новая версия ставится сама между матчами\nс github.com/gademoffshit/draft-helper",
 		cd_ban_t = "Скрыть %s",
 		cd_tip_ban = "ЛКМ: больше не предлагать для %s.\nПКМ: для всех героев. Список скрытых в настройках",
 		cd_ban_one = "Скрыт: %s",
@@ -1232,7 +1236,7 @@ do
 		source = 0, rank = 2, volume = 1, zoom = 100, bg = 88, blur = 1, tips = 1, auto = 1, debug = 0,
 		panel = 1, pview = 0, pzoom = 100, pshop = 0, padapt = 1, phide = 0, live = 1, lanes = 1, pick_ask = 1,
 		autobuy = 0, abuy_sell = 1, abuy_bb = 1, abuy_tp = 1, abuy_cour = 1, solo = 0, pdanger = 1, pext = 1, pturbo = 1, askill = 0, abuy_swap = 0, dmgtrack = 0, logauto = 1,
-		lang = 0, pup = 1, autoupd = 1,
+		lang = 0, pup = 1,
 	}
 	for key, value in pairs(defaults) do
 		cfg[key] = Config.ReadInt("draft_helper", "set_" .. key, value)
@@ -1309,19 +1313,18 @@ local function log(fmt, ...)
 end
 
 local K = {
-	VERSION = "1.2.18",
+	VERSION = "1.2.19",
 	UPDATE_URLS = {
 		"https://raw.githubusercontent.com/gademoffshit/draft-helper/main/version.json",
 		"https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@main/version.json",
 		"https://fastly.jsdelivr.net/gh/gademoffshit/draft-helper@main/version.json",
 	},
 	UPDATE_EVERY = 3 * 3600,
-	UPDATE_RETRY = 600,
+	UPDATE_RETRY = 300,
 	UPDATE_WAIT = 300,
 	UPDATE_MIN_SIZE = 50000,
 	UPDATE_RELOAD_DELAY = 1.2,
 	SCRIPT_NAME = "draft_helper.lua",
-	LOCAL_MOD = false,
 	LOG_TOKEN_FILE = "dh_logs_token.txt",
 
 	EXPLORER = "https://api.opendota.com/api/explorer?sql=",
@@ -1471,6 +1474,16 @@ local K = {
 	W = 960,
 	WIN_H = 544,
 	RAIL_W = 52,
+	HEAD_H = 46,
+	ARENA_H = 118,
+	ARENA_ORDER_H = 104,
+	SIDE_PREV = 296,
+	CARD_W = 66,
+	CARD_PIC = 37,
+	GAUGE_R = 24,
+	BAN_SW = 38,
+	BAN_SH = 21,
+	STRIP_STEP = 30,
 	BOARD_W = 212,
 	SIDE_W = 268,
 	TOP_H = 54,
@@ -5017,10 +5030,6 @@ do
 			U.remote, U.urls, U.size = data.version, urls or { data.url }, tonumber(data.size)
 			U.url = U.urls[1]
 			U.status = newer(data.version, K.VERSION) and "available" or "latest"
-			if K.LOCAL_MOD and U.status == "available" then
-				U.status = "latest"
-				LOGR.put("update: " .. data.version .. " is out, not installed because this copy has local changes")
-			end
 			log("update check: local %s, remote %s -> %s", K.VERSION, data.version, U.status)
 		end, "cd_update")
 		if not sent then
@@ -5056,7 +5065,7 @@ do
 	end
 
 	function U.install(i)
-		if K.LOCAL_MOD or not U.urls or (not i and (U.busy or U.status ~= "available")) then
+		if not U.urls or (not i and (U.busy or U.status ~= "available")) then
 			return
 		end
 		i = i or 1
@@ -5141,9 +5150,13 @@ do
 			return
 		end
 		local wait = U.status == "error" and K.UPDATE_RETRY or K.UPDATE_EVERY
-		if os.time() - U.checked > wait then
+		if U.status == "error" and U.remote and U.urls and newer(U.remote, K.VERSION) and U.idle()
+			and os.clock() >= (U.auto_at or 0) then
+			U.status = "available"
+		end
+		if os.time() - U.checked > wait and U.status ~= "available" then
 			U.check()
-		elseif U.status == "available" and cfg.autoupd == 1 and U.idle() and os.clock() >= (U.auto_at or 0) then
+		elseif U.status == "available" and U.idle() and os.clock() >= (U.auto_at or 0) then
 			U.auto_at = os.clock() + K.UPDATE_RETRY
 			log("update: installing %s automatically", tostring(U.remote))
 			U.install()
@@ -14059,18 +14072,11 @@ local function click(right)
 		elseif arg == "autobuy" then
 			G.auto_fail, G.auto_last = {}, nil
 			log("auto buy %s", cfg.autobuy == 1 and "on" or "off")
-		elseif arg == "autoupd" then
-			U.auto_at = 0
 		end
 	elseif kind == "set_refresh" then
 		refresh_data()
 	elseif kind == "set_logsend" then
 		LOGR.send("manual")
-	elseif kind == "upd_install" then
-		if U.status == "error" and U.url then
-			U.status = "available"
-		end
-		U.install()
 	elseif kind == "posbadge" then
 		if right then
 			set_manual(arg, nil)
@@ -14995,12 +15001,9 @@ do
 		local target = pad * 2 + iw + tw(W.fonts.semi, px(11), label)
 		local pw = math.floor(tween("pill_w", target, K.MOVE) + 0.5)
 		local x0 = right - pw
-		local clickable = st == "available" or st == "error"
-		local hv = approach("pill_h", (clickable and hovered(x0, cy - ph / 2, right, cy + ph / 2)) and 1 or 0, 20)
 		local ea = a * pa
 		if bg then
-			local hb = Color(bg.r, bg.g, bg.b, math.min(255, bg.a + math.floor(28 * hv)))
-			rect(x0, cy - ph / 2, right, cy + ph / 2, fade(hb, ea), px(7))
+			rect(x0, cy - ph / 2, right, cy + ph / 2, fade(bg, ea), px(7))
 		end
 		Render.PushClip(Vec2(x0, cy - ph / 2), Vec2(right, cy + ph / 2), true)
 		local tx = x0 + pad
@@ -15020,75 +15023,64 @@ do
 			grad(sx, by, sx + seg, by + px(2), fade(P.ACC_A, ea), fade(P.ACC_B, ea), px(1))
 			Render.PopClip()
 		end
-		if clickable and show then
-			hit(x0, cy - ph / 2, right, cy + ph / 2, "upd_install")
-			if st == "error" and U.error then
-				tip("pill", x0, cy - ph / 2, right, cy + ph / 2, L("cd_tip_err_t"), U.error:sub(1, 80))
-			end
+		if show and st == "error" and U.error then
+			tip("pill", x0, cy - ph / 2, right, cy + ph / 2, L("cd_tip_err_t"), U.error:sub(1, 80))
 		end
 		return x0 - px(8) * pa
 	end
 
-	local function draw_topbar(x, y, w, a)
-		local top_h = px(K.TOP_H)
-		local cy = y + top_h / 2
-		local left = x + px(18)
-		hit(x, y, x + w, y + top_h, "head")
-		local title = W.settings and L("cd_set_title") or (W.card and L("cd_nav_build_t") or L("cd_title"))
-		left = left + text(W.fonts.bold, px(15), title, left, cy, fade(P.TEXT, a)) + px(14)
-		if not W.settings and not W.card then
-			local mw, mh = segment("mode", left, cy, { L("cd_mode_order"), L("cd_mode_free") }, draft.mode, "mode", a)
-			tip("mode", left, cy - mh / 2, left + mw, cy + mh / 2, L("cd_tip_mode_t"), L("cd_tip_mode"))
-			left = left + mw + px(12)
-		end
+	local function draw_status(right, cy, a)
+		right = draw_update_pill(right, cy, a)
 		local stage = load_stage()
 		local busy = stage and D.sets[0].stats and draft.result
 		local ba = approach("head_load", busy and 1 or 0, 10)
 		if ba > 0 then
-			if stage == "error" then
-				glyph("\u{f071}", left + px(6), cy, px(10), fade(P.WARN, a * ba))
-			else
-				spinner(left + px(6), cy, px(5), a * ba, P.MUTED, math.max(1, px(1.5)))
-			end
 			local str = stage == "matches" and L("cd_ld_short"):format(math.floor(job_progress() * 100))
 				or L(STAGE_TEXT[stage] or "cd_ld_wait")
-			local sx = left + px(18) + text(W.fonts.regular, px(11), str, left + px(18), cy, fade(P.MUTED, a * ba))
-			if (stage == "error" or stage == "slow") and D.error then
-				tip("err", left, cy - px(10), sx, cy + px(10), L("cd_tip_err_t"), D.error:sub(1, 80))
-			end
 			local eta = stage == "matches" and fmt_eta(job_eta(), true)
 			if eta then
-				vline(sx + px(8), cy, px(6), a * ba)
-				text(W.fonts.regular, px(11), eta, sx + px(16), cy, fade(P.MUTED, a * ba))
+				str = str .. "  " .. eta
 			end
+			local sw = tw(W.fonts.regular, px(11), str)
+			local sx = right - sw
+			text(W.fonts.regular, px(11), str, sx, cy, fade(P.MUTED, a * ba))
+			if stage == "error" then
+				glyph("\u{f071}", sx - px(10), cy, px(10), fade(P.WARN, a * ba))
+			else
+				spinner(sx - px(10), cy, px(5), a * ba, P.MUTED, math.max(1, px(1.5)))
+			end
+			if (stage == "error" or stage == "slow") and D.error then
+				tip("err", sx - px(18), cy - px(10), right, cy + px(10), L("cd_tip_err_t"), D.error:sub(1, 80))
+			end
+			right = sx - px(26)
 		end
+		return right
+	end
 
-		local right = x + w - px(18)
-		right = draw_update_pill(right, cy, a)
-		local ca = approach("chance_a", draft.chance and 1 or 0, 10)
-		if ca > 0 then
-			local value = tween("chance", draft.chance or A.chance_last or 0.5, 0.45)
-			if draft.chance then
-				A.chance_last = draft.chance
+	local function draw_head(x, y, w, a)
+		local hh = px(K.HEAD_H)
+		local cy = y + hh / 2
+		local left = x + px(18)
+		hit(x, y, x + w, y + hh, "head")
+		local page = W.settings and "set" or (W.card and "card" or "draft")
+		local title = page == "set" and L("cd_set_title") or (page == "card" and L("cd_nav_build_t") or L("cd_title"))
+		left = left + text(W.fonts.bold, px(17), title, left, cy, fade(P.TEXT, a)) + px(16)
+		if page == "draft" then
+			local mw, mh = segment("mode", left, cy, { L("cd_mode_order"), L("cd_mode_free") }, draft.mode, "mode", a)
+			tip("mode", left, cy - mh / 2, left + mw, cy + mh / 2, L("cd_tip_mode_t"), L("cd_tip_mode"))
+			left = left + mw + px(14)
+			if draft.mode == 0 then
+				local label = L("cd_first")
+				local lw = text(W.fonts.regular, px(11), label, left, cy, fade(P.MUTED, a))
+				local sw, sh = segment("first", left + lw + px(8), cy, { L("cd_us"), L("cd_enemy") }, draft.first, "first", a)
+				tip("first", left, cy - sh / 2, left + lw + px(8) + sw, cy + sh / 2, L("cd_tip_first_t"), L("cd_tip_first"))
 			end
-			local num = ("%d%%"):format(math.floor(value * 100 + 0.5))
-			local col = mix(P.BAD, P.GOOD, approach("chance_c", value >= 0.5 and 1 or 0, 8))
-			local nw = tw(W.fonts.bold, px(20), num)
-			local cl = L("cd_chance")
-			local clw = tw(W.fonts.regular, px(10), cl)
-			text(W.fonts.bold, px(20), num, right - nw, cy - px(6), fade(col, a * ca))
-			text(W.fonts.regular, px(10), cl, right - clw, cy + px(13), fade(P.MUTED, a * ca))
-			right = right - math.max(nw, clw) - px(18)
+		else
+			local sub = page == "set" and L("cd_set_ver"):format(K.VERSION) or L("cd_card_head_sub")
+			vline(left - px(8), cy, px(7), a)
+			text(W.fonts.regular, px(11), sub, left, cy, fade(P.MUTED, a))
 		end
-		if draft.mode == 0 and not W.settings and not W.card then
-			local labels = { L("cd_us"), L("cd_enemy") }
-			local sx = right - segment_width(labels)
-			local _, sh = segment("first", sx, cy, labels, draft.first, "first", a)
-			local label = L("cd_first")
-			local lx = sx - px(8) - tw(W.fonts.regular, px(11), label)
-			text(W.fonts.regular, px(11), label, lx, cy, fade(P.MUTED, a))
-			tip("first", lx, cy - sh / 2, right, cy + sh / 2, L("cd_tip_first_t"), L("cd_tip_first"))
-		end
+		draw_status(x + w - px(18), cy, a)
 	end
 
 	local function draw_rail(x, y, w, h, a, bg)
@@ -15129,62 +15121,87 @@ do
 		btn("\u{f2ea}", "undo", nil, bb - px(126), false, true, "cd_tip_undo")
 	end
 
-	local function draw_free(x, y, w, h, a)
-		local left, right = x + px(14), x + w - px(14)
+	local function draw_gauge(cx, cy, r, a)
+		local ca = approach("chance_a", draft.chance and 1 or 0, 10)
+		local value = tween("chance", draft.chance or A.chance_last or 0.5, 0.45)
+		if draft.chance then
+			A.chance_last = draft.chance
+		end
+		local th = math.max(2, px(4))
+		Render.Circle(Vec2(cx, cy), r, fade(P.FIELD, a * 1.6), th, 0, 1, false, 48)
+		if ca > 0.01 then
+			local col = mix(P.BAD, P.GOOD, clamp((value - 0.42) / 0.16, 0, 1))
+			Render.Circle(Vec2(cx, cy), r, fade(col, a * ca), th, 270, clamp(value, 0.01, 1), true, 48)
+			local num = ("%d%%"):format(math.floor(value * 100 + 0.5))
+			text(W.fonts.bold, px(15), num, cx - tw(W.fonts.bold, px(15), num) / 2, cy, fade(P.TEXT, a * ca))
+		else
+			glyph("\u{f141}", cx, cy, px(12), fade(P.DIM, a))
+		end
+		local cl = L("cd_chance")
+		text(W.fonts.regular, px(10), cl, cx - tw(W.fonts.regular, px(10), cl) / 2, cy + r + px(11), fade(P.MUTED, a))
+	end
+
+	local function draw_arena_free(x, y, w, h, a)
 		W.cur_target = nil
-		local row_h, gap = px(K.SLOT_ROW), px(4)
-		local pw = px(54)
-		local ph = math.floor(pw * 0.5625 + 0.5)
+		local pad = px(18)
+		local cw, ch, cg = px(K.CARD_W), px(K.CARD_PIC), px(6)
+		local team_w = 5 * cw + 4 * cg
 		local c = cur_step()
-		local function team(first, key, top)
-			text(W.fonts.semi, px(11), L(key), left, top + px(9), fade(P.MUTED, a))
-			local ry = top + px(20)
+		local label_y = y + px(13)
+		local py0 = y + px(26)
+		local function team(first, x0, key, to_right)
+			local lab = L(key)
+			local lx = to_right and (x0 + team_w - tw(W.fonts.semi, px(10), lab)) or x0
+			text(W.fonts.semi, px(10), lab, lx, label_y, fade(P.MUTED, a))
 			for k = 0, 4 do
 				local i = first + k
-				local sy = ry + k * (row_h + gap)
-				local scy = sy + row_h / 2
-				local over = hovered(left - px(6), sy, right + px(6), sy + row_h)
+				local sx = x0 + k * (cw + cg)
+				local cx0, cy0, cx1, cy1 = sx - px(4), py0 - px(4), sx + cw + px(4), py0 + ch + px(22)
+				local over = hovered(cx0, cy0, cx1, cy1)
 				local rh = approach("brow" .. i, over and 1 or 0, 20)
 				if over and draft.steps[i] then
 					W.side_hover = { h = draft.steps[i], pos = draft.slot_pos[i] }
 				end
 				if i == c then
-					rect(left - px(6), sy, right + px(6), sy + row_h, fade(P.FIELD, a), px(8))
+					rect(cx0, cy0, cx1, cy1, fade(P.FIELD, a), px(8))
 				elseif rh > 0.01 then
-					rect(left - px(6), sy, right + px(6), sy + row_h, fade(P.HOVER, a * rh), px(8))
+					rect(cx0, cy0, cx1, cy1, fade(P.HOVER, a * rh), px(8))
 				end
-				hit(left - px(6), sy, right + px(6), sy + row_h, "slot", i)
+				hit(cx0, cy0, cx1, cy1, "slot", i)
 				if draft.tentative[i] then
-					tip("slot" .. i, left - px(6), sy, right + px(6), sy + row_h, L("cd_tip_tent_t"), L("cd_tip_tent"))
+					tip("slot" .. i, cx0, cy0, cx1, cy1, L("cd_tip_tent_t"), L("cd_tip_tent"))
 				else
-					tip("slot" .. i, left - px(6), sy, right + px(6), sy + row_h, L("cd_tip_slot_t"), L("cd_tip_free"))
+					tip("slot" .. i, cx0, cy0, cx1, cy1, L("cd_tip_slot_t"), L("cd_tip_free"))
 				end
-				draw_slot(i, left, math.floor(scy - ph / 2), pw, ph, a)
+				draw_slot(i, sx, py0, cw, ch, a)
+				local ny = py0 + ch + px(10)
 				local hero = draft.steps[i] and D.by_id[draft.steps[i]]
-				local nx = left + pw + px(10)
-				Render.PushClip(Vec2(nx, sy), Vec2(right, sy + row_h), true)
+				local str, font, col, ta = L("cd_slot_empty"), W.fonts.regular, P.DIM, 1
 				if hero then
-					local ta = (draft.mode == 1 and draft.tentative[i]) and 0.55 or 1
-					text(W.fonts.semi, px(12), hero.name, nx, scy, fade(P.TEXT, a * ta))
+					str, font, col = hero.name, W.fonts.semi, P.TEXT
+					ta = (draft.mode == 1 and draft.tentative[i]) and 0.55 or 1
 				elseif i == c then
-					text(W.fonts.semi, px(12), L("cd_slot_now"), nx, scy, fade(P.ACC, a))
-				else
-					text(W.fonts.regular, px(11), L("cd_slot_empty"), nx, scy, fade(P.DIM, a))
+					str, font, col = L("cd_slot_now"), W.fonts.semi, P.ACC
 				end
+				local nw = tw(font, px(10), str)
+				Render.PushClip(Vec2(sx - px(2), ny - px(8)), Vec2(sx + cw + px(2), ny + px(8)), true)
+				text(font, px(10), str, sx + math.max(0, (cw - nw) / 2), ny, fade(col, a * ta))
 				Render.PopClip()
 			end
-			return ry + 5 * (row_h + gap)
 		end
-		local by = team(1, "cd_us", y + px(10))
-		by = team(6, "cd_enemy", by + px(6))
-		text(W.fonts.semi, px(11), L("cd_bans"), left, by + px(15), fade(P.MUTED, a))
-		by = by + px(26)
-		local bgap = px(4)
-		local bw = math.floor((right - left - bgap * 4) / 5)
-		local bh = math.floor(bw * 0.6)
+		team(1, x + pad, "cd_us", false)
+		team(6, x + w - pad - team_w, "cd_enemy", true)
+		draw_gauge(x + w / 2, y + px(42), px(K.GAUGE_R), a)
+		local bw, bh, bg = px(K.BAN_SW), px(K.BAN_SH), px(4)
+		local row_w = 10 * bw + 9 * bg
+		local by = y + h - bh - px(8)
+		local bl = L("cd_bans")
+		local blw = tw(W.fonts.semi, px(10), bl)
+		local bx0 = math.floor(x + w / 2 - (row_w + blw + px(12)) / 2)
+		text(W.fonts.semi, px(10), bl, bx0, by + bh / 2, fade(P.MUTED, a))
+		bx0 = bx0 + blw + px(12)
 		for i = 11, 20 do
-			local n = i - 11
-			draw_slot(i, left + (n % 5) * (bw + bgap), by + (n // 5) * (bh + bgap), bw, bh, a)
+			draw_slot(i, bx0 + (i - 11) * (bw + bg), by, bw, bh, a)
 		end
 		draw_cursor(a)
 	end
@@ -15212,12 +15229,34 @@ do
 		local cx0, cy0 = Input.GetCursorPos()
 		local covered = W.gear_pop and in_rect(W.gear_pop, cx0, cy0)
 		W.gear_block = W.gear_pop
-		local C = { l = left, r = right, x0 = x + px(4), x1 = x + w - px(4), y = top + px(2) - scroll, a = a }
-
+		local colgap = px(14)
+		local colw = math.floor((w - px(18) * 2 - colgap) / 2)
+		local function column(cx)
+			return { l = cx + px(14), r = cx + colw - px(14), x0 = cx + px(4), x1 = cx + colw - px(4), y = top + px(10) - scroll,
+				a = a, cx0 = cx, cx1 = cx + colw }
+		end
+		local C1, C2 = column(x + px(18)), column(x + px(18) + colw + colgap)
+		local C = C1
+		left, right = C.l, C.r
+		W.sec_h = W.sec_h or {}
+		local function card_end(c)
+			if c.card then
+				c.y = c.y + px(8)
+				W.sec_h[c.card] = c.y - c.card_y
+				c.y = c.y + px(14)
+				c.card = nil
+			end
+		end
 		local function section(c, key)
-			c.y = c.y + px(6)
-			text(W.fonts.semi, px(10), L(key), c.l, c.y + px(6), fade(P.DIM, c.a))
-			c.y = c.y + px(14)
+			card_end(c)
+			local y0 = c.y
+			local hh = W.sec_h[key] or px(64)
+			rect(c.cx0, y0, c.cx1, y0 + hh, fade(P.CARD, c.a), px(12))
+			Render.Rect(Vec2(c.cx0, y0), Vec2(c.cx1, y0 + hh), fade(P.LINE, c.a), px(12), K.ROUND, math.max(1, px(1)))
+			rect(c.cx0 + px(14), y0 + px(10), c.cx0 + px(14) + math.max(2, px(3)), y0 + px(22), fade(P.ACC, c.a), px(1))
+			text(W.fonts.semi, px(10), L(key), c.l + px(9), y0 + px(16), fade(P.TEXT, c.a))
+			c.card, c.card_y = key, y0
+			c.y = y0 + px(30)
 		end
 		local function row(c, icon, label, id)
 			local cy = c.y + row_h / 2
@@ -15268,7 +15307,7 @@ do
 			end
 			glyph("\u{f013}", c.r - size / 2, cy, px(10), fade(mix(P.MUTED, P.TEXT, gh), c.a))
 			hit(c.r - size, cy - size / 2, c.r, cy + size / 2, "set_gear", key)
-			W.gear_anchor[key] = { cy - size / 2, cy + size / 2 }
+			W.gear_anchor[key] = { cy - size / 2, cy + size / 2, c.r }
 			return size
 		end
 
@@ -15373,11 +15412,22 @@ do
 		cy = toggle(C, "\u{f058}", "pick_ask", L("cd_set_pick_ask"), "pick_ask")
 		tip("st_pick", C.x0, cy - row_h / 2, C.x1, cy + row_h / 2, L("cd_set_pick_ask"), L("cd_tip_pick_ask"))
 		toggle(C, "\u{f52b}", "auto", L("cd_set_auto"), "auto")
+		card_end(C)
+		C = C2
+		left, right = C.l, C.r
+		section(C, "cd_sec_auto")
+		cy = row(C, "\u{f07a}", L("cd_set_autobuy"), "autobuy")
+		local ags = gear(C, "abuy", cy)
+		mini_switch("autobuy", C.r - ags - px(8), cy, a)
+		hit(C.x0, cy - row_h / 2, C.r - ags - px(4), cy + row_h / 2, "set_toggle", "autobuy")
+		tip("st_autobuy", C.x0, cy - row_h / 2, C.r - ags - px(4), cy + row_h / 2, L("cd_set_autobuy"), L("cd_tip_autobuy"))
+		cy = toggle(C, "\u{f062}", "askill", L("cd_set_askill"), "askill")
+		tip("st_askill", C.x0, cy - row_h / 2, C.x1, cy + row_h / 2, L("cd_set_askill"), L("cd_tip_askill"))
+
+		section(C, "cd_sec_logs")
 		toggle(C, "\u{f188}", "debug", L("cd_set_debug"), "debug")
 		cy = toggle(C, "\u{f0e0}", "logauto", L("cd_set_logauto"), "logauto")
 		tip("st_logauto", C.x0, cy - row_h / 2, C.x1, cy + row_h / 2, L("cd_set_logauto"), L("cd_tip_logauto"))
-		cy = toggle(C, "\u{f021}", "autoupd", L("cd_set_autoupd"), "autoupd")
-		tip("st_autoupd", C.x0, cy - row_h / 2, C.x1, cy + row_h / 2, L("cd_set_autoupd"), L("cd_tip_autoupd"):format(K.VERSION))
 		cy = row(C, "\u{f1d8}", L("cd_set_log"), "logsend")
 		do
 			local busy = LOGR.busy()
@@ -15394,15 +15444,6 @@ do
 			end
 			tip("st_logsend", C.x0, cy - row_h / 2, right - lbw - px(4), cy + row_h / 2, L("cd_set_log"), L("cd_tip_log"))
 		end
-
-		section(C, "cd_sec_auto")
-		cy = row(C, "\u{f07a}", L("cd_set_autobuy"), "autobuy")
-		local ags = gear(C, "abuy", cy)
-		mini_switch("autobuy", C.r - ags - px(8), cy, a)
-		hit(C.x0, cy - row_h / 2, C.r - ags - px(4), cy + row_h / 2, "set_toggle", "autobuy")
-		tip("st_autobuy", C.x0, cy - row_h / 2, C.r - ags - px(4), cy + row_h / 2, L("cd_set_autobuy"), L("cd_tip_autobuy"))
-		cy = toggle(C, "\u{f062}", "askill", L("cd_set_askill"), "askill")
-		tip("st_askill", C.x0, cy - row_h / 2, C.x1, cy + row_h / 2, L("cd_set_askill"), L("cd_tip_askill"))
 
 		section(C, "cd_sec_bans")
 		do
@@ -15454,9 +15495,11 @@ do
 			end
 		end
 
+		card_end(C1)
+		card_end(C2)
 		Render.PopClip()
 		W.hit_clip = nil
-		W.set_max = math.max(0, C.y + scroll - top + px(8) - (y + h - top))
+		W.set_max = math.max(0, math.max(C1.y, C2.y) + scroll - top - (y + h - top))
 		SB.bar("set", x + w - px(1), top, y + h, scroll, W.set_max, a)
 
 		local g = W.set_gear
@@ -15473,12 +15516,13 @@ do
 		local rows = g == "window" and 4 or (g == "abuy" and 5 or 10)
 		local pw = px(280)
 		local ph = px(40) + rows * row_h + px(6)
-		local px1 = x + w - px(8)
+		local px1 = math.min(x + w - px(8), (anchor[3] or (x + w)) + px(8))
 		local px0 = px1 - pw
 		local py = math.floor(anchor[2] + px(4))
 		if py + ph > y + h - px(4) then
 			py = math.floor(anchor[1] - px(4) - ph)
 		end
+		py = math.floor(clamp(py, top, math.max(top, y + h - px(4) - ph)))
 		local nohit = W.nohit
 		W.nohit = nohit or not W.set_gear
 		W.gear_block = nil
@@ -15542,48 +15586,53 @@ do
 		W.nohit = nohit
 	end
 
-	local function draw_timeline(x, y, w, h, a)
+	local function draw_arena(x, y, w, h, a)
 		if draft.mode == 1 then
-			draw_free(x, y, w, h, a)
+			draw_arena_free(x, y, w, h, a)
 			return
 		end
-		local mid = x + w / 2
-		local ty = y + px(K.TL_HEAD) / 2
-		text(W.fonts.semi, px(11), L("cd_us"), x + px(K.PAD), ty, fade(P.MUTED, a))
-		local en = L("cd_enemy")
-		text(W.fonts.semi, px(11), en, x + w - px(K.PAD) - tw(W.fonts.semi, px(11), en), ty, fade(P.MUTED, a))
-		local top = y + px(K.TL_HEAD)
-		local gap = px(K.TL_GAP)
-		local bottom = { -math.huge, -math.huge }
-		local prev = -math.huge
-		local c = cur_step()
 		W.cur_target = nil
-		local line = fade(P.LINE, a * 1.4)
+		local pad = px(18)
+		local label_w = px(44)
+		local gauge_w = px(96)
+		local sx0 = x + pad + label_w
+		local sx1 = x + w - pad - gauge_w
+		local mid = y + h / 2 - px(2)
+		local lane = { mid - px(22), mid + px(22) }
+		text(W.fonts.semi, px(10), L("cd_us"), x + pad, lane[1], fade(P.MUTED, a))
+		text(W.fonts.semi, px(10), L("cd_enemy"), x + pad, lane[2], fade(P.MUTED, a))
+		local pos, lane_end, prev = {}, { -math.huge, -math.huge }, -math.huge
+		for i, step in ipairs(K.STEPS) do
+			local side = step_team(i)
+			local bw = step.kind == "P" and K.PICK_W or K.BAN_W
+			local cx = i == 1 and bw / 2 or math.max(prev + K.STRIP_STEP, lane_end[side + 1] + K.TL_SAME + bw / 2)
+			prev = cx
+			lane_end[side + 1] = cx + bw / 2
+			pos[i] = cx
+		end
+		local total = math.max(lane_end[1], lane_end[2])
+		local k = math.min(s, (sx1 - sx0) / math.max(1, total))
+		rect(sx0, mid, sx0 + total * k, mid + math.max(1, px(1)), fade(P.LINE, a * 1.2))
+		local c = cur_step()
 		for i, step in ipairs(K.STEPS) do
 			local side = step_team(i)
 			local is_pick = step.kind == "P"
-			local bh = is_pick and px(K.PICK_H) or px(K.BAN_H)
-			local bw = is_pick and px(K.PICK_W) or px(K.BAN_W)
-			local cy
-			if i == 1 then
-				cy = top + bh / 2 + px(4)
-			else
-				cy = math.max(prev + K.TL_STEP * s, bottom[side + 1] + px(K.TL_SAME) + bh / 2)
-			end
-			prev = cy
-			bottom[side + 1] = cy + bh / 2
-			local bx = side == 0 and mid - gap - bw or mid + gap
-			local lx0 = side == 0 and mid - gap or mid + px(9)
-			rect(lx0, math.floor(cy), lx0 + gap - px(9), math.floor(cy) + math.max(1, px(1)), line)
+			local bw = math.floor((is_pick and K.PICK_W or K.BAN_W) * k + 0.5)
+			local bh = math.floor((is_pick and K.PICK_H or K.BAN_H) * k + 0.5)
+			local cx = sx0 + pos[i] * k
+			local cy = lane[side + 1]
 			local num = tostring(i)
 			local col = i == c and P.TEXT or (draft.steps[i] and P.MUTED or P.DIM)
 			local font = i == c and W.fonts.bold or W.fonts.semi
-			text(font, px(10), num, mid - tw(font, px(10), num) / 2, cy, fade(col, a))
-			if is_pick and draft.steps[i] and hovered(bx, cy - bh / 2, bx + bw, cy + bh / 2) then
+			local nw = tw(font, px(9), num)
+			rect(cx - nw / 2 - px(3), mid - px(6), cx + nw / 2 + px(3), mid + px(7), fade(P.BG, a), px(4))
+			text(font, px(9), num, cx - nw / 2, mid + px(0.5), fade(col, a))
+			if is_pick and draft.steps[i] and hovered(cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2) then
 				W.side_hover = { h = draft.steps[i], pos = draft.slot_pos[i] }
 			end
-			draw_slot(i, math.floor(bx), math.floor(cy - bh / 2), bw, bh, a)
+			draw_slot(i, math.floor(cx - bw / 2), math.floor(cy - bh / 2), bw, bh, a)
 		end
+		draw_gauge(x + w - pad - gauge_w / 2, mid - px(6), px(K.GAUGE_R) - px(2), a)
 		draw_cursor(a)
 	end
 
@@ -15809,32 +15858,35 @@ do
 		end
 	end
 
-	local function draw_pos_buttons(res, x, cy, a)
+	local function draw_pos_buttons(res, xr, cy, a)
 		local size = px(K.BTN)
-		local bx = x
 		local items = { { p = 0 } }
 		for p = 1, 5 do
 			items[#items + 1] = { p = p, busy = res.kind == "P" and res.taken[p] and draft.filter ~= p }
 		end
+		local total = px(4) * (#items - 1)
 		for _, it in ipairs(items) do
-			local on = draft.filter == it.p
-			local label = it.p == 0 and L("cd_auto_pos") or L("cd_pos" .. it.p)
-			local open = tween("pb_o" .. it.p, on and 1 or 0, K.MOVE)
-			local lw = (tw(W.fonts.medium, px(11), label) + px(6)) * open
-			local bw = size + lw
+			it.on = draft.filter == it.p
+			it.label = it.p == 0 and L("cd_auto_pos") or L("cd_pos" .. it.p)
+			it.open = tween("pb_o" .. it.p, it.on and 1 or 0, K.MOVE)
+			it.bw = size + (tw(W.fonts.medium, px(11), it.label) + px(6)) * it.open
+			total = total + it.bw
+		end
+		local bx = xr - total
+		for _, it in ipairs(items) do
+			local bw, open = it.bw, it.open
 			local hv = approach("pb_h" .. it.p, hovered(bx, cy - size / 2, bx + bw, cy + size / 2) and 1 or 0, 20)
-			local bg = on and P.CHIP_ON or mix(P.CELL, P.HOVER, hv)
+			local bg = it.on and P.CHIP_ON or mix(P.CELL, P.HOVER, hv)
 			local ba = a * (it.busy and 0.55 or 1)
 			rect(bx, cy - size / 2, bx + bw, cy + size / 2, fade(bg, ba), px(7))
-			local ix = bx + (size - px(15)) / 2
 			if it.p == 0 then
 				glyph("\u{f0d0}", bx + size / 2, cy, px(12), fade(mix(P.MUTED, P.TEXT, open), ba))
 			else
-				draw_pos(it.p, ix, cy, px(15), ba)
+				draw_pos(it.p, bx + (size - px(15)) / 2, cy, px(15), ba)
 			end
 			if open > 0.02 then
 				Render.PushClip(Vec2(bx + size - px(4), cy - size / 2), Vec2(bx + bw, cy + size / 2), true)
-				text(W.fonts.medium, px(11), label, bx + size - px(4), cy, fade(P.TEXT, ba * open), true)
+				text(W.fonts.medium, px(11), it.label, bx + size - px(4), cy, fade(P.TEXT, ba * open), true)
 				Render.PopClip()
 			end
 			hit(bx, cy - size / 2, bx + bw, cy + size / 2, "pos", it.p)
@@ -15858,6 +15910,7 @@ do
 			tip("pos" .. it.p, bx, cy - size / 2, bx + bw, cy + size / 2, title, body, it.p > 0 and it.p or nil)
 			bx = bx + bw + px(4)
 		end
+		return total
 	end
 
 	local SM = {}
@@ -16157,8 +16210,8 @@ do
 		return ruler + px(24)
 	end
 
-	function SM.card_side(sm, build, x0, x1, y, a)
-		if build.skills and #build.skills > 0 then
+	function SM.card_side(sm, build, x0, x1, y, a, part)
+		if part ~= "more" and build.skills and #build.skills > 0 then
 			SM.caption(L("cd_card_skills"), nil, x0, y, a)
 			y = y + px(12)
 			local ks, sg = px(22), px(3)
@@ -16215,7 +16268,7 @@ do
 			end
 			y = y + px(16)
 		end
-		if build.neutrals and #build.neutrals > 0 then
+		if part ~= "skills" and build.neutrals and #build.neutrals > 0 then
 			SM.caption(L("cd_card_neutral"), nil, x0, y, a)
 			y = y + px(12)
 			local nw, nh = px(34), px(25)
@@ -16250,7 +16303,7 @@ do
 			end
 			y = y + px(26)
 		end
-		if cfg.live == 1 then
+		if part ~= "skills" and cfg.live == 1 then
 			local list = {}
 			for _, e in ipairs(sm.them or {}) do
 				for _, p in ipairs(I.predicted(e)) do
@@ -16301,39 +16354,6 @@ do
 		if pos then
 			I.shown_pos[row.h] = pos
 		end
-		local cy = y + px(24)
-		local iw, ih = px(46), px(26)
-		local img = portrait(row.h)
-		if img then
-			Render.Image(img, Vec2(left, cy - ih / 2), Vec2(iw, ih), fade(P.WHITE, a), px(5), K.ROUND)
-		else
-			rect(left, cy - ih / 2, left + iw, cy + ih / 2, fade(P.FIELD, a), px(5))
-		end
-		local cb = px(26)
-		local cx0 = right - cb
-		local chv = approach("card_x", (W.card and hovered(cx0, cy - cb / 2, right, cy + cb / 2)) and 1 or 0, 20)
-		if chv > 0 then
-			rect(cx0, cy - cb / 2, right, cy + cb / 2, fade(P.HOVER, a * chv), px(7))
-		end
-		glyph("\u{f00d}", cx0 + cb / 2, cy, px(12), fade(mix(P.MUTED, P.TEXT, chv), a))
-		hit(cx0, cy - cb / 2, right, cy + cb / 2, "card_close")
-		local bar_x = SM.posbar(row.h, row.pos, cx0 - px(12), cy, a)
-		local fs, fg = px(22), px(3)
-		local fx = bar_x - px(14) - #sm.rows * (fs + fg) + fg
-		for k, r in ipairs(sm.rows) do
-			local bx = fx + (k - 1) * (fs + fg)
-			local on = r.h == row.h
-			local hv = approach("cdh" .. r.h, (W.card and hovered(bx, cy - fs / 2, bx + fs, cy + fs / 2)) and 1 or 0, 20)
-			rect(bx, cy - fs / 2, bx + fs, cy + fs / 2, fade(on and P.CHIP_ON or mix(P.CELL, P.HOVER, hv), a), px(6))
-			local face = mini(r.h)
-			if face then
-				local fi = px(16)
-				Render.Image(face, Vec2(bx + (fs - fi) / 2, cy - fi / 2), Vec2(fi, fi), fade(P.WHITE, a * ((on or hv > 0) and 1 or 0.6)))
-			end
-			hit(bx, cy - fs / 2, bx + fs, cy + fs / 2, "card_hero", r.h)
-			local rh = D.by_id[r.h]
-			tip("cdh" .. r.h, bx, cy - fs / 2, bx + fs, cy + fs / 2, rh and rh.name or "?", "")
-		end
 		local mates = {}
 		for _, r in ipairs(sm.rows) do
 			if r.h ~= row.h then
@@ -16342,20 +16362,68 @@ do
 		end
 		table.sort(mates)
 		local build = I.build(row.h, pos, sm.them, mates)
-		local tx = left + iw + px(10)
-		local name = hero and hero.name or "?"
-		local name_w = tw(W.fonts.bold, px(13), name)
-		Render.PushClip(Vec2(tx, cy - px(12)), Vec2(fx - px(12), cy + px(12)), true)
-		text(W.fonts.bold, px(13), name, tx, cy, fade(P.TEXT, a))
+		local bt, bb = y + px(12), y + px(92)
+		rect(left, bt, right, bb, fade(P.CARD, a), px(12))
+		grad(left, bt, left + (right - left) * 0.55, bb, fade(Color(P.ACC.r, P.ACC.g, P.ACC.b, 30), a),
+			fade(Color(P.ACC.r, P.ACC.g, P.ACC.b, 0), a), px(12))
+		Render.Rect(Vec2(left, bt), Vec2(right, bb), fade(P.LINE, a), px(12), K.ROUND, math.max(1, px(1)))
+		local iw, ih = px(118), px(66)
+		local ix, iy = left + px(8), math.floor((bt + bb - ih) / 2)
+		local img = portrait(row.h)
+		if img then
+			Render.Image(img, Vec2(ix, iy), Vec2(iw, ih), fade(P.WHITE, a), px(9), K.ROUND)
+		else
+			rect(ix, iy, ix + iw, iy + ih, fade(P.FIELD, a), px(9))
+		end
+		local cb = px(26)
+		local cx0, ccy = right - px(8) - cb, bt + px(20)
+		local chv = approach("card_x", (W.card and hovered(cx0, ccy - cb / 2, cx0 + cb, ccy + cb / 2)) and 1 or 0, 20)
+		if chv > 0 then
+			rect(cx0, ccy - cb / 2, cx0 + cb, ccy + cb / 2, fade(P.HOVER, a * chv), px(7))
+		end
+		glyph("\u{f00d}", cx0 + cb / 2, ccy, px(12), fade(mix(P.MUTED, P.TEXT, chv), a))
+		hit(cx0, ccy - cb / 2, cx0 + cb, ccy + cb / 2, "card_close")
+		local fs, fg = px(24), px(4)
+		local fx = cx0 - px(12) - #sm.rows * (fs + fg) + fg
+		for k, r in ipairs(sm.rows) do
+			local bx = fx + (k - 1) * (fs + fg)
+			local on = r.h == row.h
+			local hv = approach("cdh" .. r.h, (W.card and hovered(bx, ccy - fs / 2, bx + fs, ccy + fs / 2)) and 1 or 0, 20)
+			rect(bx, ccy - fs / 2, bx + fs, ccy + fs / 2, fade(on and P.CHIP_ON or mix(P.CELL, P.HOVER, hv), a), px(7))
+			local face = mini(r.h)
+			if face then
+				local fi = px(18)
+				Render.Image(face, Vec2(bx + (fs - fi) / 2, ccy - fi / 2), Vec2(fi, fi), fade(P.WHITE, a * ((on or hv > 0) and 1 or 0.6)))
+			end
+			hit(bx, ccy - fs / 2, bx + fs, ccy + fs / 2, "card_hero", r.h)
+			local rh = D.by_id[r.h]
+			tip("cdh" .. r.h, bx, ccy - fs / 2, bx + fs, ccy + fs / 2, rh and rh.name or "?", "")
+		end
+		local pcy = bb - px(20)
+		local bar_x = SM.posbar(row.h, row.pos, right - px(12), pcy, a)
+		if draft.chance then
+			local num = ("%d%%"):format(math.floor(draft.chance * 100 + 0.5))
+			local cl = L("cd_chance")
+			local nx = bar_x - px(16) - tw(W.fonts.bold, px(13), num)
+			text(W.fonts.bold, px(13), num, nx, pcy, fade(draft.chance >= 0.5 and P.GOOD or P.BAD, a))
+			text(W.fonts.regular, px(10), cl, nx - px(6) - tw(W.fonts.regular, px(10), cl), pcy, fade(P.MUTED, a))
+		end
+		local tx = ix + iw + px(16)
+		Render.PushClip(Vec2(tx, bt), Vec2(fx - px(12), bb), true)
+		text(W.fonts.bold, px(18), hero and hero.name or "?", tx, bt + px(22), fade(P.TEXT, a))
 		local sub = build and build.pooled and I.pool_note(build.pooled)
 			or (build and build.since and L("cd_build_since"):format(build.since)) or L("cd_build_sub")
-		vline(tx + name_w + px(8), cy, px(7), a)
-		text(W.fonts.regular, px(11), sub, tx + name_w + px(16), cy, fade(P.MUTED, a))
+		text(W.fonts.regular, px(11), sub, tx, bt + px(42), fade(P.MUTED, a))
 		Render.PopClip()
-		local top = y + px(48)
-		local line = math.max(1, px(1))
-		rect(x, top, x + w, top + line, fade(P.LINE, a))
-		local by = top + px(20)
+		local vx = tx + text(W.fonts.regular, px(10), L("cd_card_vs"), tx, bb - px(20), fade(P.DIM, a)) + px(8)
+		for _, e in ipairs(sm.them or {}) do
+			local face = mini(e)
+			if face and vx + px(18) < bar_x - px(120) then
+				Render.Image(face, Vec2(vx, bb - px(29)), Vec2(px(18), px(18)), fade(P.WHITE, a))
+				vx = vx + px(21)
+			end
+		end
+		local by = bb + px(20)
 		if not build or build.none or #build.slots == 0 then
 			local msg, warn, spin
 			if build and build.none then
@@ -16381,27 +16449,35 @@ do
 			end
 			return
 		end
-		local split = x + w - px(250)
-		rect(split, top, split + line, y + h - px(12), fade(P.LINE, a))
-		local lx0, lx1 = left, split - pad
-		Render.PushClip(Vec2(x, top), Vec2(x + w, y + h), true)
-		SM.caption(L("cd_build_start"), nil, lx0, by, a)
+		Render.PushClip(Vec2(x, bb), Vec2(x + w, y + h), true)
+		SM.caption(L("cd_card_order"), nil, left, by, a)
+		local hint = L("cd_card_qbuy")
+		text(W.fonts.regular, px(10), hint, right - tw(W.fonts.regular, px(10), hint), by, fade(P.DIM, a))
+		by = SM.timeline(build, left, right, by + px(16), a)
+		local line = math.max(1, px(1))
+		local gap = px(22)
+		local colw = math.floor((right - left - gap * 2) / 3)
+		local c1, c2, c3 = left, left + colw + gap, left + 2 * (colw + gap)
+		local top = by - px(4)
+		rect(c2 - gap / 2, top, c2 - gap / 2 + line, y + h - px(14), fade(P.LINE, a))
+		rect(c3 - gap / 2, top, c3 - gap / 2 + line, y + h - px(14), fade(P.LINE, a))
+		local cy = by + px(6)
+		SM.caption(L("cd_build_start"), nil, c1, cy, a)
 		local gold = L("cd_build_gold"):format(build.gold, K.START_GOLD)
-		text(W.fonts.regular, px(10), gold, lx1 - tw(W.fonts.regular, px(10), gold), by, fade(P.MUTED, a))
-		by = by + px(12)
+		text(W.fonts.regular, px(10), gold, c1 + colw - tw(W.fonts.regular, px(10), gold), cy, fade(P.MUTED, a))
+		cy = cy + px(12)
 		local sw, sh = px(36), px(26)
-		local sx = lx0
+		local sx = c1
 		for n, st in ipairs(build.start) do
-			SM.item(st.item.name, sx, by, sw, sh, st.q, a)
-			SM.qbuy("cds" .. n, st.item.name, sx, by, sx + sw, by + sh, a)
-			tip("cds" .. n, sx, by, sx + sw, by + sh, st.q > 1 and ("%s x%d"):format(st.item.label, st.q) or st.item.label, "")
+			if sx + sw > c1 + colw then
+				sx, cy = c1, cy + sh + px(5)
+			end
+			SM.item(st.item.name, sx, cy, sw, sh, st.q, a)
+			SM.qbuy("cds" .. n, st.item.name, sx, cy, sx + sw, cy + sh, a)
+			tip("cds" .. n, sx, cy, sx + sw, cy + sh, st.q > 1 and ("%s x%d"):format(st.item.label, st.q) or st.item.label, "")
 			sx = sx + sw + px(5)
 		end
-		by = by + sh + px(24)
-		SM.caption(L("cd_card_order"), nil, lx0, by, a)
-		local hint = L("cd_card_qbuy")
-		text(W.fonts.regular, px(10), hint, lx1 - tw(W.fonts.regular, px(10), hint), by, fade(P.DIM, a))
-		by = SM.timeline(build, lx0, lx1, by + px(16), a)
+		cy = cy + sh + px(22)
 		local more = {}
 		for _, lt in ipairs(build.late or {}) do
 			more[#more + 1] = lt
@@ -16410,15 +16486,15 @@ do
 			more[#more + 1] = e
 		end
 		if #more > 0 then
-			SM.caption(L(#(build.ext or {}) > 0 and "cd_card_next" or "cd_card_late"), nil, lx0, by, a)
-			by = by + px(12)
-			local lx = lx0
+			SM.caption(L(#(build.ext or {}) > 0 and "cd_card_next" or "cd_card_late"), nil, c1, cy, a)
+			cy = cy + px(12)
+			local lx = c1
 			for n, lt in ipairs(more) do
-				if lx + sw > lx1 then
-					break
+				if lx + sw > c1 + colw then
+					lx, cy = c1, cy + sh + px(5)
 				end
-				SM.item(lt.item.name, lx, by, sw, sh, nil, a)
-				SM.qbuy("cdl" .. n, lt.item.name, lx, by, lx + sw, by + sh, a)
+				SM.item(lt.item.name, lx, cy, sw, sh, nil, a)
+				SM.qbuy("cdl" .. n, lt.item.name, lx, cy, lx + sw, cy + sh, a)
 				local body
 				if lt.g40 then
 					body = L("cd_tip_late"):format(math.floor(lt.share * 100 + 0.5), lt.g40)
@@ -16432,32 +16508,31 @@ do
 				end
 				local sell = build.sells and build.sells[lt]
 				if sell then
-					SM.sell_badge(sell, lx, by, sw, sh, a)
+					SM.sell_badge(sell, lx, cy, sw, sh, a)
 					body = body .. "\n" .. SM.sell_line(sell, lt.item.label)
 				end
-				tip("cdl" .. n, lx, by, lx + sw, by + sh, lt.item.label, body)
+				tip("cdl" .. n, lx, cy, lx + sw, cy + sh, lt.item.label, body)
 				lx = lx + sw + px(8)
 			end
-			by = by + sh + px(20)
+			cy = cy + sh + px(20)
 		end
 		local sp = build.spare
 		if sp then
-			SM.item(sp.item.name, lx0, by, sw, sh, sp.q, a)
-			SM.qbuy("cdsp", sp.item.name, lx0, by, lx0 + sw, by + sh, a)
-			local scy = by + sh / 2
-			local stx = lx0 + sw + px(10)
+			SM.item(sp.item.name, c1, cy, sw, sh, sp.q, a)
+			SM.qbuy("cdsp", sp.item.name, c1, cy, c1 + sw, cy + sh, a)
+			local scy = cy + sh / 2
+			local stx = c1 + sw + px(10)
 			stx = stx + text(W.fonts.regular, px(11), L("cd_build_spare"), stx, scy, fade(P.MUTED, a)) + px(5)
 			for _, e in ipairs(sp.vs) do
 				local face = mini(e)
-				if face then
+				if face and stx + px(18) < c1 + colw then
 					Render.Image(face, Vec2(stx, math.floor(scy - px(9))), Vec2(px(18), px(18)), fade(P.WHITE, a))
+					stx = stx + px(20)
 				end
-				stx = stx + px(20)
 			end
-			vline(stx + px(4), scy, px(6), a)
-			text(W.fonts.regular, px(11), L("cd_th_invis"), stx + px(12), scy, fade(P.MUTED, a))
 		end
-		SM.card_side(sm, build, split + pad, x + w - pad, top + px(20), a)
+		SM.card_side(sm, build, c2, c2 + colw, by + px(6), a, "skills")
+		SM.card_side(sm, build, c3, c3 + colw, by + px(6), a, "more")
 		Render.PopClip()
 	end
 
@@ -16615,10 +16690,6 @@ do
 			Render.PushClip(Vec2(lx + px(8), ty - px(10)), Vec2(sub_x1, ty + px(10)), true)
 			text(W.fonts.regular, px(11), sub, lx + px(8), ty, fade(P.MUTED, a * hk), true)
 			Render.PopClip()
-			if res.positional then
-				draw_pos_buttons(res, left, y + px(52), a)
-				list_top = y + px(72)
-			end
 		elseif not cur_step() then
 			text(W.fonts.bold, px(13), L("cd_done"), left, ty, fade(P.TEXT, a), true)
 		end
@@ -16765,7 +16836,14 @@ do
 		local pad = px(16)
 		local fy0 = y + px(12)
 		local fy1 = fy0 + px(K.SEARCH_H)
-		draw_search(x + pad, fy0, x + w - pad, fy1, a)
+		local res = draft.result
+		local fx1 = x + w - pad
+		local ck = approach("chips_a", (res and res.positional and not W.grid_on and draft.query == "") and 1 or 0, 14)
+		if ck > 0.01 and res and res.positional then
+			local bw = draw_pos_buttons(res, fx1, (fy0 + fy1) / 2, a * ck)
+			fx1 = fx1 - (bw + px(10)) * ck
+		end
+		draw_search(x + pad, fy0, fx1, fy1, a)
 		local gk = approach("grid_k", (W.grid_on or draft.query ~= "") and 1 or 0, 14)
 		local top = fy1 + px(4)
 		local outer = W.nohit
@@ -17800,11 +17878,10 @@ do
 		local bg = Color(P.BG.r, P.BG.g, P.BG.b, math.floor(255 * cfg.bg / 100 + 0.5))
 		Render.FilledRect(p0, p1, fade(bg, a), r, K.ROUND)
 
-		local rail_w, board_w, side_w, top_h = px(K.RAIL_W), px(K.BOARD_W), px(K.SIDE_W), px(K.TOP_H)
+		local rail_w, top_h = px(K.RAIL_W), px(K.HEAD_H)
 		local line = math.max(1, px(1))
-		local bx0 = x + rail_w
-		local mx0 = bx0 + board_w
-		local sx0 = x + w - side_w
+		local mx0 = x + rail_w
+		local cw = x + w - mx0
 		local alpha = math.floor(255 * cfg.bg / 100 + 0.5)
 		local sm = draft.summary
 		W.nav_h = nil
@@ -17813,9 +17890,7 @@ do
 			W.nav_h = (mine0 and mine0.h) or draft.build_h or (sm.rows[1] and sm.rows[1].h)
 		end
 		draw_rail(x, y, rail_w, h, a, Color(P.RAIL.r, P.RAIL.g, P.RAIL.b, alpha))
-		draw_timeline(bx0, y, board_w, h, a)
-		rect(mx0, y, mx0 + line, y + h, fade(P.LINE, a))
-		draw_topbar(mx0, y, x + w - mx0, a)
+		draw_head(mx0, y, cw, a)
 		local cy0 = y + top_h
 		rect(mx0, cy0, x + w, cy0 + line, fade(P.LINE, a))
 		if W.card and not draft.summary then
@@ -17836,13 +17911,20 @@ do
 		local ga = a * (1 - ck) * (1 - sk)
 		local body_h = y + h - cy0
 		if ga > 0.01 then
-			rect(sx0, cy0 + line, x + w, y + h, fade(Color(P.SIDE.r, P.SIDE.g, P.SIDE.b, alpha), ga), px(K.RADIUS), K.ROUND_BR)
-			rect(sx0, cy0 + line, sx0 + line, y + h, fade(P.LINE, ga))
 			local nohit = W.nohit
 			W.nohit = nohit or W.card ~= nil or W.settings
-			draw_main(mx0 + line, cy0 + line, sx0 - mx0 - line, body_h - line, ga)
+			local arena_h = px(draft.mode == 0 and K.ARENA_ORDER_H or K.ARENA_H)
+			draw_arena(mx0 + line, cy0 + line, cw - line, arena_h, ga)
+			local by0 = cy0 + line + arena_h
+			rect(mx0 + px(18), by0, x + w - px(18), by0 + line, fade(P.LINE, ga))
+			local side_w = px(K.SIDE_PREV)
+			local sx0 = x + w - px(14) - side_w
+			local sy0, sy1 = by0 + px(12), y + h - px(14)
+			rect(sx0, sy0, sx0 + side_w, sy1, fade(Color(P.CARD.r, P.CARD.g, P.CARD.b, math.min(255, alpha + 20)), ga), px(12))
+			Render.Rect(Vec2(sx0, sy0), Vec2(sx0 + side_w, sy1), fade(P.LINE, ga), px(12), K.ROUND, line)
+			draw_main(mx0 + line, by0 + line, sx0 - mx0 - line - px(2), y + h - by0 - line, ga)
 			W.nohit = nohit or W.card ~= nil or W.settings
-			draw_side(sx0 + line, cy0 + line, side_w - line, body_h - line, ga)
+			draw_side(sx0, sy0, side_w, sy1 - sy0, ga)
 			W.nohit = nohit
 		else
 			W.grid_rect, W.list_rect = nil, nil
@@ -17850,13 +17932,13 @@ do
 		if ck > 0.01 then
 			local nohit = W.nohit
 			W.nohit = nohit or not W.card or W.settings
-			SM.card(mx0 + line, cy0 + line + math.floor((1 - ck) * px(K.SLIDE) + 0.5), x + w - mx0 - line, body_h - line, a * ck)
+			SM.card(mx0 + line, cy0 + line + math.floor((1 - ck) * px(K.SLIDE) + 0.5), cw - line, body_h - line, a * ck)
 			W.nohit = nohit
 		end
 		if sk > 0.01 then
 			local nohit = W.nohit
 			W.nohit = nohit or not W.settings
-			draw_settings_page(mx0 + line, cy0 + line + math.floor((1 - sk) * px(K.SLIDE) + 0.5), x + w - mx0 - line, body_h - line, a * sk)
+			draw_settings_page(mx0 + line, cy0 + line + math.floor((1 - sk) * px(K.SLIDE) + 0.5), cw - line, body_h - line, a * sk)
 			W.nohit = nohit
 		end
 		draw_pos_menu(a)

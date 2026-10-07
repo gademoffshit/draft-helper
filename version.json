@@ -1,10 +1,10 @@
 {
-  "version": "1.2.18",
-  "size": 1027578,
+  "version": "1.2.19",
+  "size": 1030946,
   "urls": [
-    "https://raw.githubusercontent.com/gademoffshit/draft-helper/v1.2.18/draft_helper.lua",
-    "https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@v1.2.18/draft_helper.lua",
-    "https://fastly.jsdelivr.net/gh/gademoffshit/draft-helper@v1.2.18/draft_helper.lua"
+    "https://raw.githubusercontent.com/gademoffshit/draft-helper/v1.2.19/draft_helper.lua",
+    "https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@v1.2.19/draft_helper.lua",
+    "https://fastly.jsdelivr.net/gh/gademoffshit/draft-helper@v1.2.19/draft_helper.lua"
   ],
-  "notes": "1.2.18: skills and talents fit the game, hide items, sell and backpack in auto buy, game hero suggestions, new colors"
+  "notes": "1.2.19: auto update always on, new page layout"
 }
