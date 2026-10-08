@@ -1,9 +1,10 @@
-# Draft Helper
+# Ghost
 
-Draft and build helper for Umbrella (Dota 2).
+Draft picks, item builds and auto buy for Umbrella (Dota 2).
 
-Put `draft_helper.lua` into the `scripts` folder of Umbrella. The script checks `version.json` here every few hours
-and installs a new version by itself between matches (setting "Update automatically").
+Put `draft_helper.lua` into the `scripts` folder of Umbrella and turn Ghost on in the Scripts menu.
+New versions install themselves between matches.
 
-Помощник драфта и сборки для Umbrella. Положи `draft_helper.lua` в папку `scripts` Umbrella. Новые версии скрипт
-ставит сам между матчами (настройка «Обновлять автоматически»).
+Ghost: подсказки на драфте, сборка предметов и автозакупка для Umbrella (Dota 2).
+Положи `draft_helper.lua` в папку `scripts` Umbrella и включи Ghost в меню Scripts.
+Новые версии ставятся сами между матчами.

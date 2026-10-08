@@ -1,4 +1,10 @@
 --[[
+     Ghost
+     draft picks, item builds and auto buy for Umbrella (Dota 2)
+     github.com/gademoffshit/draft-helper
+]]
+
+--[[
      ~ qLocalization
      ~ automatic localization wrapper for Lua menu interfaces
 
@@ -323,10 +329,11 @@ local localization = qLocalization.new({
 	en = {
 		cd_group_main = "Main",
 		cd_enable = "Enable",
-		cd_enable_tip = "Turns the draft helper on",
+		cd_enable_tip = "Turns Ghost on",
 		cd_key = "Open window",
 		cd_key_tip = "Opens and closes the draft window",
-		cd_bind_name = "Draft Helper",
+		cd_bind_name = "Ghost",
+		["Draft Helper"] = "Ghost",
 
 		cd_mode_order = "In turns",
 		cd_mode_free = "Free",
@@ -467,9 +474,9 @@ local localization = qLocalization.new({
 		cd_set_bg = "Background",
 		cd_set_debug = "Debug log",
 		cd_set_logauto = "Send match data to the author",
-		cd_tip_logauto = "After every match the helper sends the author its match record\n(draft, purchases, the build plan as it changed) and its log.\nErrors are sent too. No nick or Steam ID",
+		cd_tip_logauto = "After every match Ghost sends the author its match record\n(draft, purchases, the build plan as it changed) and its log.\nErrors are sent too. No nick or Steam ID",
 		cd_set_log = "Log for the author",
-		cd_tip_log = "Sends the Draft Helper log, settings and errors\nto the author right now. No nick or Steam ID",
+		cd_tip_log = "Sends the Ghost log, settings and errors\nto the author right now. No nick or Steam ID",
 		cd_log_send = "Send",
 		cd_log_sending = "Sending",
 		cd_log_sent = "Log sent, thank you",
@@ -689,7 +696,7 @@ local localization = qLocalization.new({
 		cd_sug_off = "Suggestion taken back: %s",
 		cd_tip_own_start = "You started it yourself: %d%% of the price is in your parts",
 		cd_skv_why = "Fits this game: vs %s pros max %s first more often (%d%%, usually %d%%)",
-		cd_set_ver = "Draft Helper %s, updates itself between matches",
+		cd_set_ver = "Ghost %s, updates itself between matches",
 		cd_card_head_sub = "plan for this match",
 		cd_card_vs = "vs",
 		cd_sec_logs = "REPORTS",
@@ -774,10 +781,11 @@ local localization = qLocalization.new({
 	ru = {
 		cd_group_main = "Основное",
 		cd_enable = "Включить",
-		cd_enable_tip = "Включает помощника драфта",
+		cd_enable_tip = "Включает Ghost",
 		cd_key = "Открыть окно",
 		cd_key_tip = "Открывает и закрывает окно драфта",
-		cd_bind_name = "Draft Helper",
+		cd_bind_name = "Ghost",
+		["Draft Helper"] = "Ghost",
 
 		cd_mode_order = "По очереди",
 		cd_mode_free = "Свободный",
@@ -918,9 +926,9 @@ local localization = qLocalization.new({
 		cd_set_bg = "Фон",
 		cd_set_debug = "Отладка в лог",
 		cd_set_logauto = "Отправлять данные матчей автору",
-		cd_tip_logauto = "После каждого матча хелпер отправляет автору запись матча\n(драфт, покупки, план сборки по ходу игры) и свой лог.\nОшибки тоже. Ник и Steam ID не отправляются",
+		cd_tip_logauto = "После каждого матча Ghost отправляет автору запись матча\n(драфт, покупки, план сборки по ходу игры) и свой лог.\nОшибки тоже. Ник и Steam ID не отправляются",
 		cd_set_log = "Лог для автора",
-		cd_tip_log = "Отправляет автору лог Draft Helper, настройки\nи ошибки прямо сейчас. Ник и Steam ID не отправляются",
+		cd_tip_log = "Отправляет автору лог Ghost, настройки\nи ошибки прямо сейчас. Ник и Steam ID не отправляются",
 		cd_log_send = "Отправить",
 		cd_log_sending = "Отправляется",
 		cd_log_sent = "Лог отправлен, спасибо",
@@ -1140,7 +1148,7 @@ local localization = qLocalization.new({
 		cd_sug_off = "Предложение снято: %s",
 		cd_tip_own_start = "Ты начал его сам: в частях уже %d%% цены",
 		cd_skv_why = "Под эту игру: против %s про чаще сначала максят %s (%d%%, обычно %d%%)",
-		cd_set_ver = "Draft Helper %s, обновляется сам между матчами",
+		cd_set_ver = "Ghost %s, обновляется сам между матчами",
 		cd_card_head_sub = "план на этот матч",
 		cd_card_vs = "против",
 		cd_sec_logs = "ОТЧЁТЫ",
@@ -1245,7 +1253,7 @@ local ui = {}
 
 do
 	local tab = UI.Create("Scripts", "Scripts", "Draft Helper")
-	tab:Icon("\u{f0c0}")
+	tab:Icon("\u{f6e2}")
 
 	local page = tab:Create("Settings")
 	local g_main = page:Create("cd_group_main", Enum.GroupSide.Left)
@@ -1321,7 +1329,7 @@ function LOGR.add(line)
 end
 
 function LOGR.put(line)
-	Log.Write("[Draft Helper] " .. line)
+	Log.Write("[Ghost] " .. line)
 	LOGR.add(line)
 end
 
@@ -1341,12 +1349,12 @@ local function log(fmt, ...)
 	line = ok and line or tostring(fmt)
 	LOGR.add(line)
 	if cfg.debug == 1 then
-		Log.Write("[Draft Helper] " .. line)
+		Log.Write("[Ghost] " .. line)
 	end
 end
 
 local K = {
-	VERSION = "1.2.24",
+	VERSION = "1.3.0",
 	UPDATE_URLS = {
 		"https://raw.githubusercontent.com/gademoffshit/draft-helper/main/version.json",
 		"https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@main/version.json",
