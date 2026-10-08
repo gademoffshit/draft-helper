@@ -332,7 +332,17 @@ local localization = qLocalization.new({
 		cd_mode_free = "Free",
 		cd_bans = "Bans",
 		cd_tip_mode_t = "Draft mode",
-		cd_tip_mode = "In turns: bans and picks go strictly by order\nFree: usual hero pick, put anyone anywhere",
+		cd_tip_mode = "Set by the game: Captains Mode goes in turns,\nevery other mode is a free pick",
+		cd_gm_ap = "All Pick",
+		cd_gm_cm = "Captains Mode",
+		cd_gm_rd = "Random Draft",
+		cd_gm_sd = "Single Draft",
+		cd_gm_ar = "All Random",
+		cd_gm_rcm = "Reverse Captains Mode",
+		cd_gm_cd = "Captains Draft",
+		cd_gm_ad = "Ability Draft",
+		cd_gm_rap = "Ranked All Pick",
+		cd_gm_turbo = "Turbo",
 		cd_tip_tent_t = "Ally is choosing",
 		cd_tip_tent = "The game has not revealed the hero yet,\nit can still change",
 		cd_tip_slot_t = "Slot",
@@ -773,7 +783,17 @@ local localization = qLocalization.new({
 		cd_mode_free = "Свободный",
 		cd_bans = "Баны",
 		cd_tip_mode_t = "Режим драфта",
-		cd_tip_mode = "По очереди: баны и пики строго по порядку\nСвободный: обычный выбор, ставишь кого угодно куда угодно",
+		cd_tip_mode = "Определяется по игре: в Captains Mode баны и пики по очереди,\nв остальных режимах выбор свободный",
+		cd_gm_ap = "All Pick",
+		cd_gm_cm = "Captains Mode",
+		cd_gm_rd = "Random Draft",
+		cd_gm_sd = "Single Draft",
+		cd_gm_ar = "All Random",
+		cd_gm_rcm = "Reverse Captains Mode",
+		cd_gm_cd = "Captains Draft",
+		cd_gm_ad = "Ability Draft",
+		cd_gm_rap = "Ranked All Pick",
+		cd_gm_turbo = "Турбо",
 		cd_tip_tent_t = "Союзник выбирает",
 		cd_tip_tent = "Игра ещё не открыла героя,\nон может поменяться",
 		cd_tip_slot_t = "Слот",
@@ -1313,7 +1333,7 @@ local function log(fmt, ...)
 end
 
 local K = {
-	VERSION = "1.2.21",
+	VERSION = "1.2.22",
 	UPDATE_URLS = {
 		"https://raw.githubusercontent.com/gademoffshit/draft-helper/main/version.json",
 		"https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@main/version.json",
@@ -1469,6 +1489,18 @@ local K = {
 	TENTATIVE = 0.45,
 	HERO_SELECTION = Enum.GameState.DOTA_GAMERULES_STATE_HERO_SELECTION,
 	MODE_CM = Enum.GameMode.DOTA_GAMEMODE_CM,
+	GM_KEY = {
+		[Enum.GameMode.DOTA_GAMEMODE_AP] = "cd_gm_ap",
+		[Enum.GameMode.DOTA_GAMEMODE_CM] = "cd_gm_cm",
+		[Enum.GameMode.DOTA_GAMEMODE_RD] = "cd_gm_rd",
+		[Enum.GameMode.DOTA_GAMEMODE_SD] = "cd_gm_sd",
+		[Enum.GameMode.DOTA_GAMEMODE_AR] = "cd_gm_ar",
+		[Enum.GameMode.DOTA_GAMEMODE_REVERSE_CM] = "cd_gm_rcm",
+		[Enum.GameMode.DOTA_GAMEMODE_CD] = "cd_gm_cd",
+		[Enum.GameMode.DOTA_GAMEMODE_ABILITY_DRAFT] = "cd_gm_ad",
+		[Enum.GameMode.DOTA_GAMEMODE_ALL_DRAFT] = "cd_gm_rap",
+		[Enum.GameMode.DOTA_GAMEMODE_TURBO] = "cd_gm_turbo",
+	},
 	STRATEGY = Enum.GameState.DOTA_GAMERULES_STATE_STRATEGY_TIME,
 
 	W = 960,
@@ -1504,6 +1536,7 @@ local K = {
 	SEARCH_H = 32,
 	CELL_H = 21,
 	CELL_GAP = 3,
+	CELL_CROP_Y = 0.35,
 	COL_GAP = 6,
 	BTN = 27,
 	SET_ROW = 28,
@@ -3587,7 +3620,7 @@ local D = {
 
 local draft = {
 	first = 0,
-	mode = 0,
+	mode = 1,
 	store = { [0] = {}, [1] = {} },
 	history = { [0] = {}, [1] = {} },
 	target = nil,
@@ -3617,7 +3650,7 @@ local draft = {
 	build_h = nil,
 }
 
-draft.steps = draft.store[0]
+draft.steps = draft.store[1]
 
 local W = {
 	open = false,
@@ -15157,7 +15190,17 @@ do
 		local title = page == "set" and L("cd_set_title") or (page == "card" and L("cd_nav_build_t") or L("cd_title"))
 		left = left + text(W.fonts.bold, px(17), title, left, cy, fade(P.TEXT, a)) + px(16)
 		if page == "draft" then
-			local mw, mh = segment("mode", left, cy, { L("cd_mode_order"), L("cd_mode_free") }, draft.mode, "mode", a)
+			local mode = L(draft.mode == 0 and "cd_mode_order" or "cd_mode_free")
+			local gk = draft.gm and K.GM_KEY[draft.gm]
+			local game = gk and ("  \u{00b7}  " .. L(gk)) or ""
+			local mh, pad = px(24), px(9)
+			local mt = tw(W.fonts.medium, px(11), mode)
+			local mw = mt + tw(W.fonts.regular, px(11), game) + pad * 2
+			rect(left, cy - mh / 2, left + mw, cy + mh / 2, fade(P.FIELD, a), px(8))
+			text(W.fonts.medium, px(11), mode, left + pad, cy, fade(P.TEXT, a))
+			if game ~= "" then
+				text(W.fonts.regular, px(11), game, left + pad + mt, cy, fade(P.MUTED, a))
+			end
 			tip("mode", left, cy - mh / 2, left + mw, cy + mh / 2, L("cd_tip_mode_t"), L("cd_tip_mode"))
 			left = left + mw + px(14)
 			if draft.mode == 0 then
@@ -15781,8 +15824,8 @@ do
 			end
 			local cw = (col_w - (n - 1) * cell_gap) / n
 			local ch = math.min(math.floor(cw * 9 / 16), math.floor((gy1 - gy0 - head_h + cell_gap) / math.max(1, rows) - cell_gap))
-			if ch >= px(14) and ch * 3.6 >= cw and cw * ch > best then
-				best, per, cell_w, cell_h = cw * ch, n, cw, ch
+			if ch >= px(16) and ch > best then
+				best, per, cell_w, cell_h = ch, n, cw, ch
 			end
 		end
 		local q = norm(draft.query)
@@ -15822,8 +15865,17 @@ do
 					local ix0, iy0 = hx - grow, hy - grow
 					local iw, ih = hw + grow * 2, cell_h + grow * 2
 					if img then
+						local r = (iw / math.max(1, ih)) / (16 / 9)
+						local u0, v0, u1, v1 = 0, 0, 1, 1
+						if r > 1 then
+							v0 = (1 - 1 / r) * K.CELL_CROP_Y
+							v1 = v0 + 1 / r
+						elseif r < 1 then
+							u0 = (1 - r) / 2
+							u1 = u0 + r
+						end
 						Render.Image(img, Vec2(ix0, iy0), Vec2(iw, ih), fade(mix(P.WHITE, P.USED, u), alpha), px(4), K.ROUND,
-							Vec2(0, 0), Vec2(1, 1), u)
+							Vec2(u0, v0), Vec2(u1, v1), u)
 					else
 						rect(ix0, iy0, ix0 + iw, iy0 + ih, fade(P.FIELD, alpha), px(4))
 					end
@@ -18056,10 +18108,17 @@ local function check_match()
 	end
 	local gs = GameRules.GetGameState()
 	local id = tostring(GameRules.GetMatchID()) .. ":" .. tostring(GameRules.GetLobbyID())
+	if draft.mode_for ~= id then
+		local okm, gm = pcall(GameRules.GetGameMode)
+		if okm and gm and gm ~= Enum.GameMode.DOTA_GAMEMODE_NONE then
+			draft.mode_for, draft.gm = id, gm
+			set_mode(gm == K.MODE_CM and 0 or 1)
+			log("draft mode %s, game mode %s", draft.mode == 0 and "in turns" or "free", tostring(gm))
+		end
+	end
 	if gs == K.HERO_SELECTION then
 		if draft.match ~= id then
 			draft.match = id
-			set_mode(GameRules.GetGameMode() == K.MODE_CM and 0 or 1)
 			reset_draft()
 			I.bpos, I.shown_pos, W.card = {}, {}, nil
 			log("new draft %s", id)

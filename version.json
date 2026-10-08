@@ -1,10 +1,10 @@
 {
-  "version": "1.2.21",
-  "size": 1035104,
+  "version": "1.2.22",
+  "size": 1037189,
   "urls": [
-    "https://raw.githubusercontent.com/gademoffshit/draft-helper/v1.2.21/draft_helper.lua",
-    "https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@v1.2.21/draft_helper.lua",
-    "https://fastly.jsdelivr.net/gh/gademoffshit/draft-helper@v1.2.21/draft_helper.lua"
+    "https://raw.githubusercontent.com/gademoffshit/draft-helper/v1.2.22/draft_helper.lua",
+    "https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@v1.2.22/draft_helper.lua",
+    "https://fastly.jsdelivr.net/gh/gademoffshit/draft-helper@v1.2.22/draft_helper.lua"
   ],
   "notes": ""
 }
