@@ -1,0 +1,19 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+site:
+  title: Ghost
+  structure:
+    - type: space
+      key: ghost-ru
+      title: Русский
+      path: ru
+      default: true
+      content:
+        directory: ./gitbook/ru
+        language: ru
+    - type: space
+      key: ghost-en
+      title: English
+      path: en
+      content:
+        directory: ./gitbook/en
+        language: en
