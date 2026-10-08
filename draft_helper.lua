@@ -1313,7 +1313,7 @@ local function log(fmt, ...)
 end
 
 local K = {
-	VERSION = "1.2.20",
+	VERSION = "1.2.21",
 	UPDATE_URLS = {
 		"https://raw.githubusercontent.com/gademoffshit/draft-helper/main/version.json",
 		"https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@main/version.json",
@@ -3280,6 +3280,9 @@ local K = {
 	EXT_KEPT = 0.2,
 	EXT_KEPT_N = 5,
 	SELL_HOLD = 300,
+	LIFT_SAFE = 1200,
+	LIFT_GAP = 3,
+	LIFT_TRIES = 3,
 	REACT_KEEP_SHARE = 0.3,
 	PHYS_MIN = 0.8,
 	PHYS_ITEMS = {
@@ -10429,7 +10432,7 @@ do
 		end
 	end
 
-	local function sell_for(target, steps, done, fates, weak)
+	local function sell_for(target, steps, done, fates, weak, swap)
 		local main = {}
 		for _, name in ipairs(G.main or {}) do
 			main[#main + 1] = name
@@ -10487,7 +10490,7 @@ do
 			return v
 		end
 		local late_target = target.late or target.ext
-		local best, best_v
+		local best, best_v, young
 		for _, name in ipairs(main) do
 			local item = I.by_name[name]
 			local fate = fates and fates[name]
@@ -10495,7 +10498,19 @@ do
 			local late_ok = late_target and drop >= K.SELL_DROP
 			local fresh = G.got_at[name] and (G.ptime or 0) - G.got_at[name] < K.SELL_HOLD
 			if item and not soft(name) and not K.BOOTS[name] and not K.SELL_SKIP[name] and (item.cost <= K.SELL_MAX or late_ok)
-				and counter_now(name) < K.SELL_COUNTER and not fresh then
+				and counter_now(name) < K.SELL_COUNTER and fresh then
+				local needed = target.dis ~= nil and target.dis.name == name
+				for _, st in ipairs(steps) do
+					if (not done(st) and I.contains(st.item, name)) or (((st.s and not st.pre) or st.late or st.ext)
+						and (st.item == item or I.contains(item, st.item.name)) and not late_ok) then
+						needed = true
+					end
+				end
+				if not needed and (not young or item.cost < young.cost) then
+					young = item
+				end
+			elseif item and not soft(name) and not K.BOOTS[name] and not K.SELL_SKIP[name] and (item.cost <= K.SELL_MAX or late_ok)
+				and counter_now(name) < K.SELL_COUNTER then
 				local needed = target.dis ~= nil and target.dis.name == name
 				for _, st in ipairs(steps) do
 					if not done(st) and I.contains(st.item, name) then
@@ -10514,7 +10529,10 @@ do
 				end
 			end
 		end
-		if not best and weak and (not target.base or (G.owned[target.base.name] or 0) == 0) then
+		if not best and young and (swap or (G.bag_used or 0) < K.BACKPACK) then
+			return { name = young.name, label = young.label, bag = true }
+		end
+		if not best and weak and not swap and (not target.base or (G.owned[target.base.name] or 0) == 0) then
 			local data = G.data
 			local need = target.item.cost - progress(target.item, {}, 0)
 			local room = (G.bag_used or 0) < K.BACKPACK
@@ -11297,6 +11315,43 @@ do
 		if alive and not home then
 			auto_courier(hero, now)
 		end
+		local lift = plan.lift
+		if lift and alive and not pre and cfg.abuy_sell == 1 and now >= (G.lift_at or 0) then
+			local okn, near = pcall(Entity.GetHeroesInRadius, hero, K.LIFT_SAFE)
+			if home or (okn and type(near) == "table" and #near == 0) then
+				local x_it, dest
+				for slot = K.MAIN_LAST + 1, K.MAIN_LAST + K.BACKPACK do
+					local it = NPC.GetItemByIndex(hero, slot)
+					if not x_it and it and item_name(it) == lift.name then
+						x_it = it
+					end
+				end
+				for slot = 0, K.MAIN_LAST do
+					local it = NPC.GetItemByIndex(hero, slot)
+					if not dest and ((lift.out and it and item_name(it) == lift.out) or (not lift.out and not it)) then
+						dest = slot
+					end
+				end
+				if x_it and dest then
+					G.lift_at = now + K.LIFT_GAP
+					G.lift_try = G.lift_try or {}
+					G.lift_try[lift.name] = (G.lift_try[lift.name] or 0) + 1
+					G.bagged = G.bagged or {}
+					if G.lift_try[lift.name] > K.LIFT_TRIES then
+						G.bagged[lift.name] = true
+						log("auto: %s stays in the backpack, moving it did not work %d times", lift.name, K.LIFT_TRIES)
+						return
+					end
+					auto_order(Enum.UnitOrder.DOTA_UNIT_ORDER_MOVE_ITEM, x_it, hero, dest)
+					if lift.out then
+						G.bagged[lift.out] = true
+					end
+					log("auto: %s from the backpack to slot %d%s", lift.name, dest, lift.out and (", " .. lift.out .. " to the backpack") or "")
+					G.rec("auto", { "lift", lift.name, lift.out or "-", gold })
+					return
+				end
+			end
+		end
 		local reserve = pre and 0 or bb_reserve()
 		G.reserve = reserve
 		local budget = gold - reserve
@@ -11416,6 +11471,8 @@ do
 				end
 				if act == "bag" then
 					auto_order(Enum.UnitOrder.DOTA_UNIT_ORDER_MOVE_ITEM, s_it, hero, slot)
+					G.bagged = G.bagged or {}
+					G.bagged[sell.name] = true
 					log("auto: %s to backpack slot %d to make room for %s", sell.name, slot, d.name)
 					G.rec("auto", { "bag", sell.name, d.name, gold })
 					return
@@ -12131,7 +12188,7 @@ do
 			return hard < K.SLOTS or sell_for(st, steps, step_done, base.fates, weak) ~= nil
 		end
 		local function can(st)
-			if step_done(st) or not (st.ext or (late_game and ((st.s and not st.pre) or st.late) and (st.signal or 0) == 0)) then
+			if step_done(st) or not (st.ext or ((late_game or st.late) and ((st.s and not st.pre) or st.late) and (st.signal or 0) == 0)) then
 				return true
 			end
 			st.blocked = not ext_room(st)
@@ -12323,6 +12380,36 @@ do
 					line = L("cd_tip_weak"):format(sell.label) .. "\n" .. line
 				end
 				plan.next.body = plan.next.body ~= "" and (plan.next.body .. "\n" .. line) or line
+			end
+		end
+		if live then
+			local empty = #(G.main or {}) < K.SLOTS
+			for _, name in ipairs(G.bag_names or {}) do
+				local it = I.by_name[name]
+				if not plan.lift and it and not it.consumable and it.cost >= K.SELL_SHOW_COST and not (G.bagged or {})[name]
+					and not (plan.next and plan.next.sell and plan.next.sell.name == name) then
+					local planned = false
+					for _, st in ipairs(steps) do
+						if st.item == it and step_done(st) then
+							planned = true
+						end
+					end
+					if planned and empty then
+						plan.lift = { name = name }
+					elseif planned then
+						local out = sell_for({ item = it }, steps, step_done, base.fates, false, true)
+						local o = out and I.by_name[out.name]
+						if o and o.cost < it.cost then
+							plan.lift = { name = name, out = out.name }
+						end
+					end
+				end
+			end
+			local note = plan.lift and (plan.lift.name .. " over " .. (plan.lift.out or "an empty slot")) or "-"
+			if note ~= G.lift_note then
+				G.lift_note = note
+				log("panel backpack: %s (main: %s, backpack: %s)", note, table.concat(G.main or {}, ", "),
+					table.concat(G.bag_names or {}, ", "))
 			end
 		end
 		if live and target and target.upg then
@@ -13210,7 +13297,7 @@ do
 			G.ev, G.got_at, G.ew_note, G.erole_note, I.eroles = {}, {}, nil, nil, nil
 			G.state, G.diff, G.state_at = "even", 0, nil
 			G.solo, G.solo_until, G.solo_max, G.conn, G.fired = nil, nil, nil, {}, {}
-			G.auto_fail, G.auto_last, G.reserve = {}, nil, 0
+			G.auto_fail, G.auto_last, G.reserve, G.bagged, G.lift_note, G.lift_try = {}, nil, 0, {}, nil, {}
 			G.dmg, G.dw, G.leader, G.press, G.danger_sig, G.hurt_seen, G.hurt_note = {}, nil, nil, nil, nil, nil, nil
 			local okm, gm = pcall(GameRules.GetGameMode)
 			G.turbo = okm and gm == Enum.GameMode.DOTA_GAMEMODE_TURBO
@@ -13430,7 +13517,7 @@ do
 			more[#more + 1] = h
 		end
 		I.want_more = more
-		local owned, main, bag, stacks = {}, {}, 0, {}
+		local owned, main, bag, stacks, bagn = {}, {}, 0, {}, {}
 		for slot = 0, K.INV_LAST do
 			local item = NPC.GetItemByIndex(hero, slot)
 			local name = item and item_name(item)
@@ -13439,12 +13526,16 @@ do
 				G.stack_add(stacks, item, name)
 				if slot <= K.MAIN_LAST then
 					main[#main + 1] = name
+					if G.lift_try and G.lift_try[name] and G.bagged then
+						G.bagged[name] = true
+					end
 				elseif slot <= K.MAIN_LAST + K.BACKPACK then
 					bag = bag + 1
+					bagn[#bagn + 1] = name
 				end
 			end
 		end
-		G.bag_used = bag
+		G.bag_used, G.bag_names = bag, bagn
 		local tp_item = NPC.GetItemByIndex(hero, K.TP_SLOT)
 		local tp_name = tp_item and item_name(tp_item)
 		if tp_name then
@@ -13695,7 +13786,7 @@ do
 			end
 		end
 		local sig = { info.id, G.bpos, table.concat(them, ","), I.items_at, I.buys_at[info.id] or 0, cfg.padapt, cfg.live, I.pub_at,
-			table.concat(main, ","), G.state or "even", table.concat(team_sig, ","), G.solo or "-", G.danger_sig or "-",
+			table.concat(main, ",") .. "/" .. table.concat(bagn, ","), G.state or "even", table.concat(team_sig, ","), G.solo or "-", G.danger_sig or "-",
 			cfg.pdanger, cfg.pext, G.tk, math.floor((G.ptime or 0) / 60), cfg.autobuy, cfg.solo, cfg.abuy_bb, cfg.lanes, G.erole_note or "",
 			cfg.pup, math.floor((G.gold or 0) / K.UP_GOLD_STEP), I.ban_v or 0 }
 		local names = {}
