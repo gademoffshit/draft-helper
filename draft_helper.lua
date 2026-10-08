@@ -1346,7 +1346,7 @@ local function log(fmt, ...)
 end
 
 local K = {
-	VERSION = "1.2.23",
+	VERSION = "1.2.24",
 	UPDATE_URLS = {
 		"https://raw.githubusercontent.com/gademoffshit/draft-helper/main/version.json",
 		"https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@main/version.json",
@@ -9636,6 +9636,46 @@ function enemy_panel_heroes(my_team)
 	return out
 end
 
+local function ally_panel_heroes(my_team)
+	local id = my_team == K.TEAM_DIRE and "DireTeamPlayers" or "RadiantTeamPlayers"
+	local ok, root = pcall(Panorama.GetPanelByName, id, false)
+	local slots, all, seen = {}, {}, {}
+	if not (ok and root) then
+		return slots, all, "missing"
+	end
+	local node = root
+	for _ = 1, 3 do
+		local okc, count = pcall(node.GetChildCount, node)
+		if not okc or count ~= 1 then
+			break
+		end
+		local okg, child = pcall(node.GetChild, node, 0)
+		if not okg or not child then
+			break
+		end
+		node = child
+	end
+	local okc, count = pcall(node.GetChildCount, node)
+	count = okc and count or 0
+	for i = 0, count - 1 do
+		local okg, child = pcall(node.GetChild, node, i)
+		if okg and child then
+			local out = {}
+			collect_units(child, out, {}, 1)
+			if #out == 1 and count == 5 then
+				slots[i + 1] = out[1]
+			end
+			for _, unit in ipairs(out) do
+				if not seen[unit] then
+					seen[unit] = true
+					all[#all + 1] = unit
+				end
+			end
+		end
+	end
+	return slots, all, "found " .. count
+end
+
 local panel_roles
 do
 	local function lane_texts()
@@ -9858,7 +9898,7 @@ local function sync_free()
 		draft.manual[1][i] = nil
 		changed = true
 	end
-	local sig, hovers = {}, {}
+	local sig, hovers, hidden = {}, {}, {}
 	local by_id, used = true, {}
 	for _, p in ipairs(mates) do
 		local pid = Player.GetPlayerID(p)
@@ -9889,6 +9929,8 @@ local function sync_free()
 					draft.tentative[k] = nil
 					changed = true
 				end
+			elseif hid > 0 then
+				hidden[#hidden + 1] = k
 			else
 				hovers[#hovers + 1] = { k = k, h = (hover > 0 and D.by_id[hover]) and hover or 0 }
 			end
@@ -9902,6 +9944,57 @@ local function sync_free()
 				changed = true
 			end
 			sig[#sig + 1] = ("%d:%d:%d:%d"):format(Player.GetPlayerID(p), hid, hover, flags)
+		end
+	end
+	if #hidden > 0 then
+		local slots, all, how = ally_panel_heroes(my_team)
+		local taken, spare, notes = {}, {}, {}
+		for i = 1, 5 do
+			if draft.steps[i] and not draft.tentative[i] then
+				taken[draft.steps[i]] = i
+			end
+		end
+		for _, unit in ipairs(all) do
+			local info = D.by_unit[unit]
+			if info and not taken[info.id] then
+				spare[#spare + 1] = info.id
+			end
+		end
+		for _, k in ipairs(hidden) do
+			local info = slots[k] and D.by_unit[slots[k]]
+			local h = info and info.id or nil
+			if h and taken[h] and taken[h] ~= k then
+				h = nil
+			end
+			if not h and not taken[draft.steps[k] or 0] then
+				for j, sh in ipairs(spare) do
+					if not h and sh then
+						h = sh
+					end
+				end
+			end
+			if not h and draft.steps[k] and taken[draft.steps[k]] == k then
+				h = draft.steps[k]
+			end
+			if h then
+				for j, sh in ipairs(spare) do
+					if sh == h then
+						spare[j] = false
+					end
+				end
+				set(k, h)
+				taken[h] = k
+				if draft.tentative[k] then
+					draft.tentative[k] = nil
+					changed = true
+				end
+			end
+			notes[#notes + 1] = k .. ":" .. (h and D.by_id[h].name or "?")
+		end
+		local note = how .. ", " .. table.concat(notes, " ")
+		if note ~= draft.hidden_note then
+			draft.hidden_note = note
+			log("sync: hidden ally picks, panel %s", note)
 		end
 	end
 	local okr, roles, rkey = false, nil, nil
