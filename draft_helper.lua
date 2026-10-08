@@ -323,7 +323,288 @@ local qLocalization = (function()
 end)()
 
 local Config = Config
-local JSON = require("assets.JSON")
+local JSON = {}
+do
+	local byte, sub, find, char, format, concat, sort = string.byte, string.sub, string.find, string.char, string.format, table.concat, table.sort
+	local mtype, floor, huge = math.type, math.floor, math.huge
+	local unescape = { [34] = '"', [92] = "\\", [47] = "/", [98] = "\b", [102] = "\f", [110] = "\n", [114] = "\r", [116] = "\t" }
+	local escape = { ['"'] = '\\"', ["\\"] = "\\\\", ["\b"] = "\\b", ["\f"] = "\\f", ["\n"] = "\\n", ["\r"] = "\\r", ["\t"] = "\\t" }
+
+	local function fail(text, pos, what)
+		error(format("JSON %s at byte %d of %d", (pos or 0) > #text and "cut off" or what, pos or 0, #text), 0)
+	end
+
+	local function utf8_char(cp)
+		if cp < 0x80 then
+			return char(cp)
+		elseif cp < 0x800 then
+			return char(0xC0 | (cp >> 6), 0x80 | (cp & 0x3F))
+		elseif cp < 0x10000 then
+			return char(0xE0 | (cp >> 12), 0x80 | ((cp >> 6) & 0x3F), 0x80 | (cp & 0x3F))
+		end
+		return char(0xF0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3F), 0x80 | ((cp >> 6) & 0x3F), 0x80 | (cp & 0x3F))
+	end
+
+	local function skip(text, pos)
+		return find(text, "[^ \t\r\n]", pos) or #text + 1
+	end
+
+	local function read_string(text, pos)
+		local i, parts, n = pos + 1, nil, 0
+		while true do
+			local a = find(text, '["\\]', i)
+			if not a then
+				fail(text, #text + 1, "cut off")
+			end
+			if byte(text, a) == 34 then
+				if not parts then
+					return sub(text, i, a - 1), a + 1
+				end
+				n = n + 1
+				parts[n] = sub(text, i, a - 1)
+				return concat(parts, "", 1, n), a + 1
+			end
+			parts = parts or {}
+			n = n + 1
+			parts[n] = sub(text, i, a - 1)
+			local c = byte(text, a + 1)
+			if c == 117 then
+				local cp = tonumber(sub(text, a + 2, a + 5), 16)
+				if not cp then
+					fail(text, a + 6 > #text and #text + 1 or a, "bad escape")
+				end
+				local nxt = a + 6
+				if cp >= 0xD800 and cp <= 0xDBFF and sub(text, nxt, nxt + 1) == "\\u" then
+					local lo = tonumber(sub(text, nxt + 2, nxt + 5), 16)
+					if lo and lo >= 0xDC00 and lo <= 0xDFFF then
+						cp = 0x10000 + (cp - 0xD800) * 0x400 + (lo - 0xDC00)
+						nxt = nxt + 6
+					end
+				end
+				n = n + 1
+				parts[n] = utf8_char(cp)
+				i = nxt
+			else
+				local e = c and unescape[c]
+				if not e then
+					fail(text, c and a or #text + 1, "bad escape")
+				end
+				n = n + 1
+				parts[n] = e
+				i = a + 2
+			end
+		end
+	end
+
+	local read_value
+
+	function read_value(text, pos)
+		pos = skip(text, pos)
+		local c = byte(text, pos)
+		if c == 34 then
+			return read_string(text, pos)
+		elseif c == 123 then
+			local obj = {}
+			pos = skip(text, pos + 1)
+			if byte(text, pos) == 125 then
+				return obj, pos + 1
+			end
+			while true do
+				if byte(text, pos) ~= 34 then
+					fail(text, pos, "expected a key")
+				end
+				local key
+				key, pos = read_string(text, pos)
+				pos = skip(text, pos)
+				if byte(text, pos) ~= 58 then
+					fail(text, pos, "expected ':'")
+				end
+				local val
+				val, pos = read_value(text, pos + 1)
+				obj[key] = val
+				pos = skip(text, pos)
+				c = byte(text, pos)
+				if c == 44 then
+					pos = skip(text, pos + 1)
+				elseif c == 125 then
+					return obj, pos + 1
+				else
+					fail(text, pos, "expected ',' or '}'")
+				end
+			end
+		elseif c == 91 then
+			local arr, n = {}, 0
+			pos = skip(text, pos + 1)
+			if byte(text, pos) == 93 then
+				return arr, pos + 1
+			end
+			while true do
+				local val
+				val, pos = read_value(text, pos)
+				n = n + 1
+				arr[n] = val
+				pos = skip(text, pos)
+				c = byte(text, pos)
+				if c == 44 then
+					pos = pos + 1
+				elseif c == 93 then
+					return arr, pos + 1
+				else
+					fail(text, pos, "expected ',' or ']'")
+				end
+			end
+		elseif c == 45 or (c and c >= 48 and c <= 57) then
+			local a, b = find(text, "^-?%d+%.?%d*[eE]?[-+]?%d*", pos)
+			local num = a and tonumber(sub(text, a, b))
+			if not num then
+				fail(text, pos, "bad number")
+			end
+			return num, b + 1
+		elseif c == 116 and sub(text, pos, pos + 3) == "true" then
+			return true, pos + 4
+		elseif c == 102 and sub(text, pos, pos + 4) == "false" then
+			return false, pos + 5
+		elseif c == 110 and sub(text, pos, pos + 3) == "null" then
+			return nil, pos + 4
+		end
+		fail(text, pos, "unexpected character")
+	end
+
+	function JSON.decode(_, text)
+		if type(text) ~= "string" then
+			error("JSON input is " .. type(text), 0)
+		end
+		local value, pos = read_value(text, 1)
+		pos = skip(text, pos)
+		if pos <= #text then
+			fail(text, pos, "trailing garbage")
+		end
+		return value
+	end
+
+	local function esc(c)
+		return escape[c] or format("\\u%04x", byte(c))
+	end
+
+	local write
+
+	function write(v, out, n, seen)
+		local t = type(v)
+		if t == "string" then
+			n = n + 1
+			out[n] = '"' .. v:gsub('[\0-\31"\\]', esc) .. '"'
+		elseif t == "number" then
+			n = n + 1
+			if v ~= v then
+				out[n] = "null"
+			elseif v >= huge then
+				out[n] = "1e+9999"
+			elseif v <= -huge then
+				out[n] = "-1e+9999"
+			elseif mtype(v) == "integer" then
+				out[n] = format("%d", v)
+			else
+				local s = format("%.17g", v)
+				if tonumber(format("%.14g", v)) == v then
+					s = format("%.14g", v)
+				end
+				if not find(s, "[%.eEn]") then
+					s = s .. ".0"
+				end
+				out[n] = s
+			end
+		elseif t == "boolean" then
+			n = n + 1
+			out[n] = v and "true" or "false"
+		elseif t == "table" then
+			if seen[v] then
+				error("JSON can't encode a table that contains itself", 0)
+			end
+			seen[v] = true
+			local strs, nums, max, bad, other = {}, 0, 0, false, false
+			for k in pairs(v) do
+				local kt = type(k)
+				if kt == "string" then
+					strs[#strs + 1] = k
+				elseif kt == "number" then
+					nums = nums + 1
+					if k <= 0 or k >= huge or mtype(k) ~= "integer" then
+						bad = true
+					elseif k > max then
+						max = k
+					end
+				elseif kt == "boolean" then
+					other = true
+				else
+					error("JSON can't encode a table key of type " .. kt, 0)
+				end
+			end
+			if #strs == 0 and not bad and not other then
+				n = n + 1
+				out[n] = "["
+				for i = 1, max do
+					if i > 1 then
+						n = n + 1
+						out[n] = ","
+					end
+					if v[i] == nil then
+						n = n + 1
+						out[n] = "null"
+					else
+						n = write(v[i], out, n, seen)
+					end
+				end
+				n = n + 1
+				out[n] = "]"
+			else
+				local map = v
+				if nums > 0 or other then
+					map = {}
+					for k, val in pairs(v) do
+						map[type(k) == "string" and k or tostring(k)] = val
+					end
+					strs = {}
+					for k in pairs(map) do
+						strs[#strs + 1] = k
+					end
+				end
+				sort(strs)
+				n = n + 1
+				out[n] = "{"
+				for i, k in ipairs(strs) do
+					if i > 1 then
+						n = n + 1
+						out[n] = ","
+					end
+					n = n + 1
+					out[n] = '"' .. k:gsub('[\0-\31"\\]', esc) .. '":'
+					local val = map[k]
+					if val == nil then
+						n = n + 1
+						out[n] = "null"
+					else
+						n = write(val, out, n, seen)
+					end
+				end
+				n = n + 1
+				out[n] = "}"
+			end
+			seen[v] = nil
+		elseif v == nil then
+			n = n + 1
+			out[n] = "null"
+		else
+			error("JSON can't encode a " .. t, 0)
+		end
+		return n
+	end
+
+	function JSON.encode(_, value)
+		local out = {}
+		local n = write(value, out, 0, {})
+		return concat(out, "", 1, n)
+	end
+end
 
 local localization = qLocalization.new({
 	en = {
@@ -1354,7 +1635,7 @@ local function log(fmt, ...)
 end
 
 local K = {
-	VERSION = "1.3.0",
+	VERSION = "1.3.1",
 	UPDATE_URLS = {
 		"https://raw.githubusercontent.com/gademoffshit/draft-helper/main/version.json",
 		"https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@main/version.json",
@@ -1471,7 +1752,8 @@ local K = {
 	FREE_PICKS = 10,
 	SYNC_EVERY = 0.5,
 	SYNC_GAME_EVERY = 3,
-	ROLES_EVERY = 2,
+	ROLES_EVERY = 4,
+	BAR_EVERY = 1.5,
 	SYNC_MODES = {
 		[Enum.GameMode.DOTA_GAMEMODE_AP] = true,
 		[Enum.GameMode.DOTA_GAMEMODE_TURBO] = true,
@@ -1489,6 +1771,7 @@ local K = {
 	GRID_DEPTH = 20,
 	GRID_MIN = 60,
 	GRID_EVERY = 2,
+	GRID_CACHE = 20,
 	TEAM_DIRE = Enum.TeamNum.TEAM_DIRE,
 	MATCH_STATES = {
 		[Enum.GameState.DOTA_GAMERULES_STATE_HERO_SELECTION] = true,
@@ -4309,6 +4592,17 @@ local function pack_text(name)
 	return body, tonumber(t)
 end
 
+function D.pack_url(name, n)
+	local list = K.GH_URLS
+	return list[((n or 1) - 1) % #list + 1] .. "pack/" .. name
+end
+
+function D.pack_body(res)
+	local text = type(res) == "table" and tostring(res.code) == "200" and type(res.response) == "string" and res.response or ""
+	local t, q, body = text:match("^t=(%d+) ?q?=?(%d*)[^\n]*\n(.+)$")
+	return body, tonumber(t), tonumber(q)
+end
+
 local function request(url, param, on_done)
 	D.busy = true
 	D.busy_at = os.clock()
@@ -4322,7 +4616,7 @@ local function request(url, param, on_done)
 		if not ok then
 			D.error = tostring(err):gsub("^.-:%d+: ", "")
 			local low_err = D.error:lower()
-			local short = low_err:find("timeout", 1, true) or low_err:find("cut off", 1, true) or low_err:find("json.lua", 1, true)
+			local short = low_err:find("timeout", 1, true) or low_err:find("cut off", 1, true) or low_err:find("json", 1, true)
 				or low_err:find("connect", 1, true) or low_err:find("resolve", 1, true) or low_err:find("http 0 ", 1, true)
 			D.next_request = os.clock() + (short and K.RETRY_SHORT or K.RETRY)
 			if D.error ~= D.logged_error then
@@ -4443,8 +4737,24 @@ local function request_pos()
 		log("positions loaded: %d rows", #rows)
 	end
 	if not D.pos_count and not D.pack_pos then
-		D.pack_pos = true
 		local text, t = pack_text("pro_pos.json")
+		if not text and not D.web_pos then
+			D.web_pos = true
+			request(D.pack_url("pro_pos.json", D.web_src), "cd_pos", function(res)
+				local body, wt = D.pack_body(res)
+				local ok, rows = pcall(JSON.decode, JSON, body or "")
+				if body and ok and type(rows) == "table" and #rows > 0 and pcall(on_rows, rows) then
+					D.pos_at = wt
+					save_pro(rows, nil)
+					log("positions from the GitHub pack (%s)", os.date("%Y-%m-%d", wt))
+				else
+					D.web_src = (D.web_src or 1) + 1
+					log("positions: GitHub pack http %s, asking OpenDota", tostring(res.code))
+				end
+			end)
+			return
+		end
+		D.pack_pos = true
 		local ok, rows = pcall(JSON.decode, JSON, text or "")
 		if text and ok and type(rows) == "table" and #rows > 0 and pcall(on_rows, rows) then
 			D.pos_at = t
@@ -4468,8 +4778,24 @@ local function request_contest()
 		log("pro contest loaded: %d heroes", #rows)
 	end
 	if not D.contest and not D.pack_contest then
-		D.pack_contest = true
 		local text, t = pack_text("pro_contest.json")
+		if not text and not D.web_contest then
+			D.web_contest = true
+			request(D.pack_url("pro_contest.json", D.web_src), "cd_contest", function(res)
+				local body, wt = D.pack_body(res)
+				local ok, rows = pcall(JSON.decode, JSON, body or "")
+				if body and ok and type(rows) == "table" and #rows > 0 and pcall(on_rows, rows) then
+					D.contest_at = wt
+					save_pro(nil, rows)
+					log("pro contest from the GitHub pack (%s)", os.date("%Y-%m-%d", wt))
+				else
+					D.web_src = (D.web_src or 1) + 1
+					log("pro contest: GitHub pack http %s, asking OpenDota", tostring(res.code))
+				end
+			end)
+			return
+		end
+		D.pack_contest = true
 		local ok, rows = pcall(JSON.decode, JSON, text or "")
 		if text and ok and type(rows) == "table" and #rows > 0 and pcall(on_rows, rows) then
 			D.contest_at = t
@@ -5519,17 +5845,30 @@ do
 	end
 
 	function I.rows_unpack(text)
-		local rows, cols = {}, K.BUYS_COLS
-		for line in text:gmatch("[^;]+") do
-			local r, j = {}, 0
-			for v in (line .. ","):gmatch("([^,]*),") do
-				j = j + 1
-				local col = cols[j]
-				if col and v ~= "" then
-					r[col] = col == "i" and v or tonumber(v)
+		local rows, cols, n = {}, K.BUYS_COLS, 0
+		local find, sub = string.find, string.sub
+		local pos, len = 1, #text
+		while pos <= len do
+			local e = find(text, ";", pos, true) or len + 1
+			if e > pos then
+				local r, j, p = {}, 0, pos
+				while p <= e do
+					local c = find(text, ",", p, true)
+					if not c or c > e then
+						c = e
+					end
+					j = j + 1
+					local col = cols[j]
+					if col and c > p then
+						local v = sub(text, p, c - 1)
+						r[col] = col == "i" and v or tonumber(v)
+					end
+					p = c + 1
 				end
+				n = n + 1
+				rows[n] = r
 			end
-			rows[#rows + 1] = r
+			pos = e + 1
 		end
 		return rows
 	end
@@ -5934,7 +6273,7 @@ do
 				return
 			end
 			local msg = tostring(err):gsub("^.-:%d+: ", "")
-			if (msg:find("JSON.lua", 1, true) or msg:find("cut off", 1, true)) and (I.cut or 0) < 3 then
+			if (msg:find("JSON", 1, true) or msg:find("cut off", 1, true)) and (I.cut or 0) < 3 then
 				I.cut = (I.cut or 0) + 1
 				I.next_at = os.clock() + K.RETRY_SHORT
 				log("%s: answer was cut off, retry %d", param, I.cut)
@@ -6167,6 +6506,25 @@ do
 		end)
 	end
 
+	function I.web_pack(h)
+		fetch(D.pack_url(h .. ".txt", I.web_src), "cd_buys", function(res)
+			local body, t, q = D.pack_body(res)
+			if not body or I.buys[h] then
+				I.web_src = (I.web_src or 1) + 1
+				log("purchases for %d: GitHub pack http %s, asking OpenDota", h, tostring(res.code))
+				return
+			end
+			local rows = I.rows_unpack(body)
+			if #rows == 0 then
+				return
+			end
+			I.buys_at[h] = q == K.BUYS_Q and t or 0
+			set_buys(h, rows)
+			keep_buys(h, rows)
+			log("purchases for %d from the GitHub pack (%s): %d rows", h, os.date("%Y-%m-%d %H:%M", t), #rows)
+		end)
+	end
+
 	function I.positions(h)
 		local out = {}
 		local all = I.buys[h]
@@ -6236,6 +6594,12 @@ do
 				return
 			end
 			if h and not I.buys[h] then
+				if I.pack_tried[h] and not (I.pack_web or {})[h] and I.web_pack and not I.busy and os.clock() >= I.next_at then
+					I.pack_web = I.pack_web or {}
+					I.pack_web[h] = true
+					I.web_pack(h)
+					return
+				end
 				if not I.pack_tried[h] then
 					I.pack_tried[h] = true
 					local okr, body, t, q = pcall(I.pack_read, h)
@@ -9478,6 +9842,7 @@ local function reset_draft()
 	draft.known_pos, draft.me, draft.my_role, draft.filter_user, draft.sync_sig = {}, nil, nil, false, nil
 	draft.tentative, draft.build_h, draft.summary_sig, draft.pick_recs = {}, nil, nil, nil
 	draft.extra_bans, draft.extra_key, draft.unavail, draft.unavail_key, draft.grid_at = {}, nil, {}, nil, 0
+	draft.grid_cache, draft.bar_at, draft.bar_enemies, draft.bar_allies = nil, 0, nil, nil
 	draft.store[draft.mode], draft.history[draft.mode], draft.target = draft.steps, {}, nil
 	draft.manual[draft.mode] = {}
 	W.list_scroll, W.card, W.card_auto = 0, nil, nil
@@ -9777,6 +10142,26 @@ do
 end
 
 local function grid_cards(min)
+	local gc = draft.grid_cache
+	if gc and not min and os.clock() < gc.until_t then
+		local out = {}
+		for i, c in ipairs(gc.cards) do
+			local okv, valid = pcall(c.panel.IsValid, c.panel)
+			local oko, off = false, nil
+			if okv and valid then
+				oko, off = pcall(c.panel.HasClass, c.panel, K.GRID_OFF)
+			end
+			if not oko then
+				out = nil
+				break
+			end
+			out[i] = { h = c.h, open = not off }
+		end
+		if out and #out >= K.GRID_MIN then
+			return out
+		end
+		draft.grid_cache = nil
+	end
 	local grid
 	for _, id in ipairs({ "RadiantTeamPlayers", "DireTeamPlayers" }) do
 		local ok, anchor = pcall(Panorama.GetPanelByName, id, false)
@@ -9799,7 +10184,7 @@ local function grid_cards(min)
 	if not grid then
 		return nil
 	end
-	local out, seen = {}, {}
+	local out, seen, cards = {}, {}, {}
 	local function open(panel)
 		local p = panel
 		for _ = 1, K.GRID_CARD_UP do
@@ -9811,7 +10196,7 @@ local function grid_cards(min)
 			local okc, is_card = pcall(p.HasClass, p, K.GRID_CARD)
 			if okc and is_card then
 				local oko, off = pcall(p.HasClass, p, K.GRID_OFF)
-				return oko and not off
+				return oko and not off, oko and p or nil
 			end
 		end
 		return false
@@ -9829,7 +10214,11 @@ local function grid_cards(min)
 			local info = D.by_unit[unit]
 			if info and not seen[info.id] then
 				seen[info.id] = true
-				out[#out + 1] = { h = info.id, open = open(panel) }
+				local is_open, card = open(panel)
+				out[#out + 1] = { h = info.id, open = is_open }
+				if card then
+					cards[#cards + 1] = { panel = card, h = info.id }
+				end
 			end
 			return
 		end
@@ -9845,6 +10234,9 @@ local function grid_cards(min)
 		end
 	end
 	walk(grid, 0)
+	if not min and #cards == #out and #out >= K.GRID_MIN then
+		draft.grid_cache = { cards = cards, until_t = os.clock() + K.GRID_CACHE }
+	end
 	return #out >= (min or K.GRID_MIN) and out or nil
 end
 
@@ -9872,6 +10264,9 @@ local function sync_free()
 		return
 	end
 	local picking = why == K.HERO_SELECTION or why == K.STRATEGY
+	if now >= (draft.bar_at or 0) then
+		draft.bar_at, draft.bar_enemies, draft.bar_allies = now + K.BAR_EVERY, nil, nil
+	end
 	if not picking then
 		draft.sync_at = now + K.SYNC_GAME_EVERY
 	end
@@ -9955,7 +10350,11 @@ local function sync_free()
 		end
 	end
 	if #hidden > 0 then
-		local slots, all, how = ally_panel_heroes(my_team)
+		if not draft.bar_allies then
+			local s1, a1, h1 = ally_panel_heroes(my_team)
+			draft.bar_allies = { slots = s1, all = a1, how = h1 }
+		end
+		local slots, all, how = draft.bar_allies.slots, draft.bar_allies.all, draft.bar_allies.how
 		local taken, spare, notes = {}, {}, {}
 		for i = 1, 5 do
 			if draft.steps[i] and not draft.tentative[i] then
@@ -10042,7 +10441,10 @@ local function sync_free()
 		for _, unit in ipairs(enemies) do
 			had[unit] = true
 		end
-		for _, unit in ipairs(enemy_panel_heroes(my_team)) do
+		if not draft.bar_enemies then
+			draft.bar_enemies = enemy_panel_heroes(my_team)
+		end
+		for _, unit in ipairs(draft.bar_enemies) do
 			if not had[unit] then
 				had[unit] = true
 				enemies[#enemies + 1] = unit

@@ -4,6 +4,11 @@ icon: clock-rotate-left
 
 # Versions
 
+## 1.3.1
+
+* Everything in one file: the JSON parser is built in and the offline pack no longer needs installing. When OpenDota is out of reach, Ghost takes builds and pro tables from the pack on GitHub, refreshed daily.
+* Faster: OpenDota answers and the cache parse 2–4 times faster, and during hero selection the Dota hero grid is read 8 times less.
+
 ## 1.3.0
 
 * New name: Ghost.

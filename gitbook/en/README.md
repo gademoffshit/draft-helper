@@ -7,7 +7,7 @@ icon: ghost
 Draft hints, an item build for this exact match and auto buy for Umbrella (Dota 2). Ghost reads the draft straight from the game, suggests picks against the enemies and with your allies, and in the match shows what to buy next and can buy it for you.
 
 <!-- versions:start -->
-**Download:** [draft_helper.lua](https://github.com/gademoffshit/draft-helper/releases/download/v1.3.0/draft_helper.lua) `v1.3.0`, 2026-10-08
+**Download:** [draft_helper.lua](https://github.com/gademoffshit/draft-helper/releases/download/v1.3.1/draft_helper.lua) `v1.3.1`, 2026-10-08
 
 <details>
 
@@ -15,6 +15,7 @@ Draft hints, an item build for this exact match and auto buy for Umbrella (Dota 
 
 | Version | Date | File |
 | --- | --- | --- |
+| [`v1.3.1`](https://github.com/gademoffshit/draft-helper/tree/v1.3.1) | 2026-10-08 | [draft_helper.lua](https://github.com/gademoffshit/draft-helper/releases/download/v1.3.1/draft_helper.lua) |
 | [`v1.3.0`](https://github.com/gademoffshit/draft-helper/tree/v1.3.0) | 2026-10-08 | [draft_helper.lua](https://github.com/gademoffshit/draft-helper/releases/download/v1.3.0/draft_helper.lua) |
 | [`v1.2.24`](https://github.com/gademoffshit/draft-helper/tree/v1.2.24) | 2026-10-08 | [draft_helper.lua](https://github.com/gademoffshit/draft-helper/raw/v1.2.24/draft_helper.lua) |
 | [`v1.2.23`](https://github.com/gademoffshit/draft-helper/tree/v1.2.23) | 2026-10-08 | [draft_helper.lua](https://github.com/gademoffshit/draft-helper/raw/v1.2.23/draft_helper.lua) |
