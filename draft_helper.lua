@@ -1225,6 +1225,18 @@ local localization = qLocalization.new({
 })
 
 local UI = localization.WrapLibrary(Menu)
+localization.memo, localization.raw_get = {}, localization.Get
+function localization.Get(key, force)
+	if force ~= localization.force then
+		return localization.raw_get(key, force)
+	end
+	local v = localization.memo[key]
+	if v == nil then
+		v = localization.raw_get(key, force)
+		localization.memo[key] = v
+	end
+	return v
+end
 local L = function(key)
 	return localization.Get(key, localization.force)
 end
@@ -1282,6 +1294,7 @@ function localization.apply_lang()
 		end
 	end
 	localization.force, localization.umb = force, localization.GetLanguage()
+	localization.memo, localization.memo_lang = {}, localization.GetLanguage(force)
 	localization.Update(force)
 end
 
@@ -1333,7 +1346,7 @@ local function log(fmt, ...)
 end
 
 local K = {
-	VERSION = "1.2.22",
+	VERSION = "1.2.23",
 	UPDATE_URLS = {
 		"https://raw.githubusercontent.com/gademoffshit/draft-helper/main/version.json",
 		"https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@main/version.json",
@@ -2687,6 +2700,9 @@ local K = {
 	BAN_SKIP = { tpscroll = true, ward_dispenser = true, ward_observer = true, ward_sentry = true },
 	MENU_CACHE = 0.01,
 	SLOW_MS = 40,
+	TW_MAX = 6000,
+	PERF_EVERY = 15,
+	GC_MODE = "generational",
 	SLOW_PART = 0.003,
 	SLOW_GAP = 20,
 	AUTO_EVERY = 0.4,
@@ -13952,7 +13968,7 @@ local function cursor_in_window()
 end
 
 local function hit_at(cx, cy)
-	for i = #W.hits, 1, -1 do
+	for i = math.min(W.nhits or 0, #W.hits), 1, -1 do
 		local hit = W.hits[i]
 		if cx >= hit[1] and cx <= hit[3] and cy >= hit[2] and cy <= hit[4] then
 			return hit
@@ -14424,13 +14440,58 @@ function W.slow(kind)
 			parts[#parts + 1] = { name, t }
 		end
 	end
-	W.cost = {}
 	local okc, kb = pcall(collectgarbage, "count")
 	local mem = okc and tonumber(kb) or nil
 	local freed = (mem and W.mem_last) and (W.mem_last - mem) / 1024 or 0
 	local loads, sizes = W.img_new or 0, W.tw_n or 0
-	W.mem_last, W.img_new, W.tw_n = mem, 0, 0
 	local now = os.clock()
+	local pf = W.perf
+	if not pf then
+		pf = { at = now, parts = {}, n = {}, sum = {}, max = {}, alloc = 0, drops = 0, drop_mb = 0, sizes = 0 }
+		W.perf = pf
+	end
+	pf.n[kind] = (pf.n[kind] or 0) + 1
+	pf.sum[kind] = (pf.sum[kind] or 0) + total
+	pf.max[kind] = math.max(pf.max[kind] or 0, total)
+	pf.sizes = pf.sizes + sizes
+	for name, t in pairs(W.cost or {}) do
+		pf.parts[name] = (pf.parts[name] or 0) + t
+	end
+	if freed < 0 then
+		pf.alloc = pf.alloc - freed
+	elseif freed > 2 then
+		pf.drops, pf.drop_mb = pf.drops + 1, pf.drop_mb + freed
+	end
+	if now - pf.at >= K.PERF_EVERY then
+		local span = now - pf.at
+		if cfg.debug == 1 then
+			local top = {}
+			for name, t in pairs(pf.parts) do
+				if name:sub(1, 1) ~= "." then
+					top[#top + 1] = { name, t }
+				end
+			end
+			table.sort(top, function(x, y)
+				return x[2] > y[2]
+			end)
+			for i = #top, 1, -1 do
+				if i > 6 then
+					top[i] = nil
+				else
+					top[i] = ("%s %.2f"):format(top[i][1], top[i][2] / math.max(1, pf.n.frame or 1) * 1000)
+				end
+			end
+			local okg, gm = pcall(collectgarbage, "isrunning")
+			log("perf %.0fs: %d frames, frame %.2f ms avg %.1f max, update %.2f ms avg %.1f max, per frame [%s], lua %s MB, alloc %.1f MB/s, gc drops %d (%.0f MB), text sizes %d, gc %s",
+				span, pf.n.frame or 0, (pf.sum.frame or 0) / math.max(1, pf.n.frame or 1) * 1000, (pf.max.frame or 0) * 1000,
+				(pf.sum.update or 0) / math.max(1, pf.n.update or 1) * 1000, (pf.max.update or 0) * 1000, table.concat(top, ", "),
+				mem and ("%.0f"):format(mem / 1024) or "?", pf.alloc / span, pf.drops, pf.drop_mb, pf.sizes,
+				tostring(W.gc_mode or (okg and gm)))
+		end
+		W.perf = nil
+	end
+	W.cost = {}
+	W.mem_last, W.img_new, W.tw_n = mem, 0, 0
 	if total * 1000 < K.SLOW_MS or now < (W.slow_at or 0) then
 		return
 	end
@@ -14451,7 +14512,7 @@ local draw_window, draw_panel, draw_tips
 local load_stage, spinner, STAGE_TEXT
 
 do
-	local s, m, dt = nil, {}, 0
+	local s, m, dt, twc = nil, {}, 0, { n = 0 }
 	local A = W.anim
 
 	local function ease(k)
@@ -14554,8 +14615,32 @@ do
 	end
 
 	local function tw(font, size, text)
+		local fc = twc[font]
+		if not fc then
+			fc = {}
+			twc[font] = fc
+		end
+		local sc = fc[size]
+		if not sc then
+			sc = {}
+			fc[size] = sc
+		end
+		local w = sc[text]
+		if w then
+			return w
+		end
 		W.tw_n = (W.tw_n or 0) + 1
-		return Render.TextSize(font, size, text).x
+		w = Render.TextSize(font, size, text).x
+		if w and w > 0 then
+			if twc.n >= K.TW_MAX then
+				twc = { n = 0 }
+				fc, sc = {}, {}
+				twc[font], fc[size] = fc, sc
+			end
+			sc[text] = w
+			twc.n = twc.n + 1
+		end
+		return w
 	end
 
 	local function th(font, size)
@@ -14627,7 +14712,14 @@ do
 				return
 			end
 		end
-		W.hits[#W.hits + 1] = { x0, y0, x1, y1, kind, arg }
+		local n = (W.nhits or 0) + 1
+		W.nhits = n
+		local h = W.hits[n]
+		if h then
+			h[1], h[2], h[3], h[4], h[5], h[6] = x0, y0, x1, y1, kind, arg
+		else
+			W.hits[n] = { x0, y0, x1, y1, kind, arg }
+		end
 	end
 
 	local function hovered(x0, y0, x1, y1)
@@ -17969,7 +18061,7 @@ do
 		local open = W.open and ui.enable:Get()
 		local was = W.vis
 		W.vis = open and math.min(1, W.vis + dt / K.FADE) or math.max(0, W.vis - dt / K.FADE)
-		W.hits = {}
+		W.nhits = 0
 		for key in pairs(W.held) do
 			if not Input.IsKeyDown(key, true) then
 				W.held[key] = nil
@@ -18672,6 +18764,9 @@ function script.OnUpdateEx()
 	if cfg.lang ~= 0 and localization.GetLanguage() ~= localization.umb then
 		localization.apply_lang()
 	end
+	if localization.GetLanguage(localization.force) ~= localization.memo_lang then
+		localization.memo, localization.memo_lang = {}, localization.GetLanguage(localization.force)
+	end
 	if not ui.enable:Get() then
 		W.open = false
 		return
@@ -18890,6 +18985,13 @@ function script.OnPrepareUnitOrders(data)
 		return false
 	end
 	return true
+end
+
+
+do
+	local okc, prev = pcall(collectgarbage, K.GC_MODE)
+	W.gc_mode = okc and K.GC_MODE or ("default, " .. tostring(prev))
+	log("gc mode %s (was %s)", tostring(W.gc_mode), tostring(okc and prev or "-"))
 end
 
 return script
