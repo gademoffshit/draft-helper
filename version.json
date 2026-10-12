@@ -1,10 +1,10 @@
 {
-  "version": "1.3.1",
-  "size": 1053628,
+  "version": "1.3.2",
+  "size": 636532,
   "urls": [
-    "https://raw.githubusercontent.com/gademoffshit/draft-helper/v1.3.1/draft_helper.lua",
-    "https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@v1.3.1/draft_helper.lua",
-    "https://fastly.jsdelivr.net/gh/gademoffshit/draft-helper@v1.3.1/draft_helper.lua"
+    "https://raw.githubusercontent.com/gademoffshit/draft-helper/v1.3.2/draft_helper.lua",
+    "https://cdn.jsdelivr.net/gh/gademoffshit/draft-helper@v1.3.2/draft_helper.lua",
+    "https://fastly.jsdelivr.net/gh/gademoffshit/draft-helper@v1.3.2/draft_helper.lua"
   ],
-  "notes": "Ghost 1.3.1: one file (built-in JSON, offline pack from GitHub), faster parsing and hero selection"
+  "notes": "Ghost 1.3.2: window draws about 2x faster with ~90% less garbage (fewer stutters), file 1.05 MB -> 0.64 MB (models download once into configs)"
 }

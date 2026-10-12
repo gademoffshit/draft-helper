@@ -7,7 +7,7 @@ icon: ghost
 Подсказки на драфте, сборка предметов под матч и автозакупка для Umbrella (Dota 2). Ghost читает драфт прямо из игры, подсказывает пик под врагов и союзников, а в матче показывает, что покупать дальше, и может покупать сам.
 
 <!-- versions:start -->
-**Скачать:** [draft_helper.lua](https://github.com/gademoffshit/draft-helper/releases/download/v1.3.1/draft_helper.lua) `v1.3.1`, 2026-10-08
+**Скачать:** [draft_helper.lua](https://github.com/gademoffshit/draft-helper/releases/download/v1.3.2/draft_helper.lua) `v1.3.2`, 2026-10-12
 
 <details>
 
@@ -15,6 +15,7 @@ icon: ghost
 
 | Версия | Дата | Файл |
 | --- | --- | --- |
+| [`v1.3.2`](https://github.com/gademoffshit/draft-helper/tree/v1.3.2) | 2026-10-12 | [draft_helper.lua](https://github.com/gademoffshit/draft-helper/releases/download/v1.3.2/draft_helper.lua) |
 | [`v1.3.1`](https://github.com/gademoffshit/draft-helper/tree/v1.3.1) | 2026-10-08 | [draft_helper.lua](https://github.com/gademoffshit/draft-helper/releases/download/v1.3.1/draft_helper.lua) |
 | [`v1.3.0`](https://github.com/gademoffshit/draft-helper/tree/v1.3.0) | 2026-10-08 | [draft_helper.lua](https://github.com/gademoffshit/draft-helper/releases/download/v1.3.0/draft_helper.lua) |
 | [`v1.2.24`](https://github.com/gademoffshit/draft-helper/tree/v1.2.24) | 2026-10-08 | [draft_helper.lua](https://github.com/gademoffshit/draft-helper/raw/v1.2.24/draft_helper.lua) |
